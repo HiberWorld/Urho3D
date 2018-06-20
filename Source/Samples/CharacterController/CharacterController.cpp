@@ -1,0 +1,105 @@
+#include <Urho3D/Core/Context.h>
+#include <Urho3D/Graphics/AnimationController.h>
+#include <Urho3D/IO/MemoryBuffer.h>
+#include <Urho3D/Physics/PhysicsEvents.h>
+#include <Urho3D/Physics/PhysicsWorld.h>
+#include <Urho3D/Physics/RigidBody.h>
+#include <Urho3D/Scene/Scene.h>
+#include <Urho3D/Scene/SceneEvents.h>
+
+#include "CharacterController.h"
+
+CharacterController::CharacterController
+(Context* context) :
+	LogicComponent(context),
+	grounded(false),
+	canJump(true),
+	timeInAir(0.0f)
+{
+	SetUpdateEventMask(USE_FIXEDUPDATE); 
+}
+
+void CharacterController::RegisterObject
+(Context* context)
+{
+	context->RegisterFactory<CharacterController>();
+
+	URHO3D_ATTRIBUTE("Controls Yaw", float,
+		_PlayerControls.yaw_, 0.0f, AM_DEFAULT); 
+	URHO3D_ATTRIBUTE("Controls Pitch", float,
+		_PlayerControls.pitch_, 0.0f, AM_DEFAULT);
+	URHO3D_ATTRIBUTE("Grounded", bool, grounded,
+		false, AM_DEFAULT); 
+	URHO3D_ATTRIBUTE("Can Jump", bool, canJump, true,
+		AM_DEFAULT); 
+	URHO3D_ATTRIBUTE("Air Timer", float, timeInAir,
+		0.0f, AM_DEFAULT); 
+}
+
+void CharacterController::Start()
+{
+	SubscribeToEvent(GetNode(), E_NODECOLLISION,
+		URHO3D_HANDLER(CharacterController,
+			HandleNodeCollision));
+}
+
+void CharacterController::FixedUpdate(float timeStep)
+{
+	auto* rb = GetComponent<RigidBody>(); 
+	auto* animController = node_->GetComponent
+		<AnimationController>(true); 
+
+	if (!grounded)
+	{
+		timeInAir += timeStep; 
+	}
+	else
+	{
+		timeInAir = 0.0f; 
+	}
+	bool softGrounded = timeInAir < INAIR_MAX_TIME; 
+
+	if (softGrounded)
+	{
+		if (_PlayerControls.IsDown(CTRL_JUMP))
+		{
+			if (canJump)
+			{
+				rb->ApplyImpulse(Vector3::UP *
+					JUMP_VELOCITY); 
+				canJump = false; 
+			}
+		}
+		else
+		{
+			canJump = true; 
+		}
+	}
+	grounded = false; 
+}
+void CharacterController::HandleNodeCollision
+(StringHash eventTypes, VariantMap& eventData)
+{
+	using namespace NodeCollision; 
+
+	MemoryBuffer contacts(eventData[P_CONTACTS].
+		GetBuffer()); 
+
+	while (!contacts.IsEof())
+	{
+		Vector3 contactPos = contacts.ReadVector3();
+		Vector3 contactNorm = contacts.ReadVector3();
+		contacts.ReadFloat(); 
+		contacts.ReadFloat(); 
+
+		if (contactPos.y_ < (node_->GetPosition().y_ + 1.0f))
+		{
+			float elevation = contactNorm.y_; 
+
+			if (elevation > 0.75f)
+			{
+				grounded = true; 
+			}
+		}
+	}
+}

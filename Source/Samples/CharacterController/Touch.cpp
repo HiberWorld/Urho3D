@@ -25,7 +25,7 @@
 #include <Urho3D/Input/Controls.h>
 #include <Urho3D/Input/Input.h>
 
-#include "Character.h"
+#include "CharacterController.h"
 #include "Touch.h"
 
 const float GYROSCOPE_THRESHOLD = 0.1f;
@@ -78,7 +78,7 @@ void Touch::UpdateTouches(Controls& controls) // Called from HandleUpdate
         JoystickState* joystick = input->GetJoystickByIndex(0);
         if (joystick->GetNumAxes() >= 2)
         {
-            if (joystick->GetAxisPosition(0) < -GYROSCOPE_THRESHOLD)
+            /*if (joystick->GetAxisPosition(0) < -GYROSCOPE_THRESHOLD)
                 controls.Set(CTRL_LEFT, true);
             if (joystick->GetAxisPosition(0) > GYROSCOPE_THRESHOLD)
                 controls.Set(CTRL_RIGHT, true);
@@ -86,6 +86,7 @@ void Touch::UpdateTouches(Controls& controls) // Called from HandleUpdate
                 controls.Set(CTRL_FORWARD, true);
             if (joystick->GetAxisPosition(1) > GYROSCOPE_THRESHOLD)
                 controls.Set(CTRL_BACK, true);
+			*/
         }
     }
 }
