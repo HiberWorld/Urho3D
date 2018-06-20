@@ -64,7 +64,7 @@ void CharacterController::FixedUpdate(float timeStep)
 	const Quaternion& rot = node_->GetRotation();
 	Vector3 moveDir = Vector3::ZERO;
 	const Vector3& velocity(rb->
-		GetLinearVelocity);
+		GetLinearVelocity());
 	const Vector3 planeVelocity(velocity.x_,
 		0.0f, velocity.z_);
 	const float speed(planeVelocity.Length()); 
@@ -83,10 +83,6 @@ void CharacterController::FixedUpdate(float timeStep)
 
 	if (softGrounded)
 	{
-		Vector3 inertia = -planeVelocity *
-			MOVEMENT_DECCELERATION;
-		rb->ApplyImpulse(inertia); 
-
 		if (_PlayerControls.IsDown(CTRL_JUMP))
 		{
 			if (canJump)
@@ -115,6 +111,15 @@ void CharacterController::FixedUpdate(float timeStep)
 				moveMag_ = Lerp(moveMag_, 0.0f,
 					timeStep * MOVEMENT_DECCELERATION);
 			}
+
+			Vector3 inertia = -planeVelocity *
+				MOVEMENT_DECCELERATION;
+			rb->ApplyImpulse(inertia); 
+
+			velocity_ = velocity_.Lerp(rot * moveDir *
+				moveMag_ * MOVEMENT_FORCE, timeStep *
+				AGILITY); 
+			rb->ApplyImpulse(velocity_);
 		}
 	}
 	grounded = false; 

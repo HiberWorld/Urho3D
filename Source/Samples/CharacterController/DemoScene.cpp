@@ -114,6 +114,12 @@ void DemoScene::CreateAvatar()
 
 	Node* objectNode = scene_->CreateChild("Avatar");
 	objectNode->SetPosition(Vector3(0.0f, 1.0f, 0.0f));
+
+	Node* adjustmentNode = objectNode->
+		CreateChild("AdjNode"); 
+	adjustmentNode->SetRotation(Quaternion(180,
+		Vector3(0, 1, 0))); 
+
 	auto* object = objectNode->
 		CreateComponent<AnimatedModel>();
 	object->SetModel(cache->GetResource<Model>
@@ -160,7 +166,8 @@ void DemoScene::HandleUpdate(StringHash eventType,
 
 	if (character)
 	{
-		character->_PlayerControls.Set(CTRL_JUMP, 
+		character->_PlayerControls.Set(CTRL_FORWARD |
+		CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP, 
 			false);
 
 		if (touch)
@@ -172,6 +179,22 @@ void DemoScene::HandleUpdate(StringHash eventType,
 		auto* ui = GetSubsystem<UI>();
 		if (!ui->GetFocusElement())
 		{
+			if (!touch || touch->useGyroscope_)
+			{
+				character->_PlayerControls.Set(
+					CTRL_FORWARD, input->GetKeyDown(
+						KEY_W)); 
+				character->_PlayerControls.Set(
+					CTRL_LEFT, input->GetKeyDown(
+						KEY_A));
+				character->_PlayerControls.Set(
+					CTRL_BACK, input->GetKeyDown(
+						KEY_S)); 
+				character->_PlayerControls.Set(
+					CTRL_RIGHT, input->GetKeyDown(
+						KEY_D));
+			}
+
 			character->_PlayerControls.Set(CTRL_JUMP,
 				input->GetKeyDown(KEY_SPACE));
 
@@ -215,7 +238,6 @@ void DemoScene::HandleUpdate(StringHash eventType,
 				character->_PlayerControls.pitch_ +=
 					(float)input->GetMouseMoveY() *
 					YAW_SENSITIVITY;
-
 			}
 
 			character->_PlayerControls.pitch_ =
