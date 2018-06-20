@@ -1,12 +1,26 @@
 #pragma once
 
+
+#include <Urho3D/Container/Ptr.h>
+#include <Urho3D/Physics/RigidBody.h>
 #include <Urho3D\Input\Controls.h>
 #include <Urho3D\Scene\LogicComponent.h>
+#include <Urho3D/Math/Vector3.h>
+#include <Urho3D/Graphics/AnimatedModel.h>
+#include <Urho3D/Scene/Node.h>
 
 using namespace Urho3D; 
 
+const unsigned CTRL_FORWARD = 1; 
+const unsigned CTRL_BACK = 2; 
+const unsigned CTRL_LEFT = 4; 
+const unsigned CTRL_RIGHT = 8;
 const unsigned CTRL_JUMP = 16;
 
+const float MOVEMENT_FORCE = 0.8f; 
+const float MOVEMENT_ACCELERATION = 0.02f; 
+const float MOVEMENT_DECCELERATION = 0.04f; 
+const float AGILITY = 15.5f; 
 const float INAIR_MOVE_FORCE = 0.02f; 
 const float JUMP_VELOCITY = 7.0f; 
 const float INAIR_MAX_TIME = 0.1f; 
@@ -41,4 +55,7 @@ private:
 
 	float timeInAir; 
 
+	float moveMag_; 
+
+	Vector3 velocity_; 
 };

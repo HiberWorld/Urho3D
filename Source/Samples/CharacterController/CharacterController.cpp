@@ -14,7 +14,9 @@ CharacterController::CharacterController
 	LogicComponent(context),
 	grounded(false),
 	canJump(true),
-	timeInAir(0.0f)
+	timeInAir(0.0f),
+	moveMag_(0.0f),
+	velocity_(0.0f, 0.0f, 0.5f)
 {
 	SetUpdateEventMask(USE_FIXEDUPDATE); 
 }
@@ -57,10 +59,34 @@ void CharacterController::FixedUpdate(float timeStep)
 	{
 		timeInAir = 0.0f; 
 	}
-	bool softGrounded = timeInAir < INAIR_MAX_TIME; 
+	bool softGrounded = timeInAir < INAIR_MAX_TIME;
+
+	const Quaternion& rot = node_->GetRotation();
+	Vector3 moveDir = Vector3::ZERO;
+	const Vector3& velocity(rb->
+		GetLinearVelocity);
+	const Vector3 planeVelocity(velocity.x_,
+		0.0f, velocity.z_);
+	const float speed(planeVelocity.Length()); 
+
+	if (_PlayerControls.IsDown(CTRL_FORWARD))
+		moveDir += Vector3::FORWARD;
+	if (_PlayerControls.IsDown(CTRL_BACK))
+		moveDir += Vector3::BACK;
+	if (_PlayerControls.IsDown(CTRL_LEFT))
+		moveDir += Vector3::LEFT;
+	if (_PlayerControls.IsDown(CTRL_RIGHT))
+		moveDir += Vector3::RIGHT;
+
+	if (moveDir.LengthSquared() > 0.0f)
+		moveDir.Normalize();
 
 	if (softGrounded)
 	{
+		Vector3 inertia = -planeVelocity *
+			MOVEMENT_DECCELERATION;
+		rb->ApplyImpulse(inertia); 
+
 		if (_PlayerControls.IsDown(CTRL_JUMP))
 		{
 			if (canJump)
@@ -73,6 +99,22 @@ void CharacterController::FixedUpdate(float timeStep)
 		else
 		{
 			canJump = true; 
+		}
+
+		if (canJump)
+		{
+			const float moveMag(moveDir.Length());
+
+			if (moveMag > 0.0001)
+			{
+				moveMag_ = Lerp(moveMag_, 1.0f,
+					timeStep * MOVEMENT_ACCELERATION); 
+			}
+			else
+			{
+				moveMag_ = Lerp(moveMag_, 0.0f,
+					timeStep * MOVEMENT_DECCELERATION);
+			}
 		}
 	}
 	grounded = false; 
