@@ -30,8 +30,7 @@
 URHO3D_DEFINE_APPLICATION_MAIN(DemoScene)
 
 DemoScene::DemoScene(Context* context) :
-	Sample(context),
-	firstPerson_(false)
+	Sample(context)
 {
 	CharacterController::RegisterObject(context); 
 }
@@ -249,12 +248,8 @@ void DemoScene::HandleUpdate(StringHash eventType,
 				Quaternion(character->
 					_PlayerControls.yaw_, 
 					Vector3::UP));
-
-			if (input->GetKeyPress(KEY_F))
-			{
-				firstPerson_ = !firstPerson_;
-			}
 		}
+
 	}
 }
 
@@ -268,50 +263,31 @@ void DemoScene::HandlePostUpdate(
 
 	const Quaternion& rot = characterNode->
 		GetRotation();
+
 	Quaternion dir = rot * Quaternion(character->
 		_PlayerControls.pitch_, Vector3::RIGHT); 
-	
-	Node* headNode = characterNode->GetChild("Mutant:Head",
-		true);
-	float limitPitch = Clamp(character->
-		_PlayerControls.pitch_, -45.0f, 45.0f); 
-	Quaternion headDir = rot * Quaternion(limitPitch,
-		Vector3(1.0f, 0.0f, 0.0f)); 
-	/*Vector3 headTarget = headNode->GetWorldPosition() +
-		headDir * Vector3(0.0f, 0.0f, -1.0f);
-	headNode->LookAt(headTarget, Vector3(0.0f, 1.0f, 0.0f));*/
 
-	if (firstPerson_)
-	{
-		cameraNode_->SetPosition(headNode->GetWorldPosition() +
-			rot * Vector3(0.0f, 0.15f, 0.2f)); 
-		cameraNode_->SetRotation(dir); 
-	}
-	else
-	{
-		Vector3 aimPoint = characterNode->GetPosition()
+	Vector3 aimPoint = characterNode->GetPosition()
 		+ rot * Vector3(0.0f, 1.7f, 0.0f); 
 
-		Vector3 rayDir = dir * Vector3::BACK; 
-		float rayRange = touch ? touch->
-			cameraDistance_ : CAMERA_INITIAL_DIST;
-		PhysicsRaycastResult result; 
-		scene_->GetComponent<PhysicsWorld>()->
-			RaycastSingle(result, Ray(aimPoint,
+	Vector3 rayDir = dir * Vector3::BACK; 
+	float rayRange = touch ? touch->
+		cameraDistance_ : CAMERA_INITIAL_DIST;
+	PhysicsRaycastResult result; 
+	scene_->GetComponent<PhysicsWorld>()->
+		RaycastSingle(result, Ray(aimPoint,
 			rayDir), rayRange, 2);
 
-		if (result.body_)
-		{
-			rayRange = Min(rayRange,
-				result.distance_); 
-		}
-
-		rayRange = Clamp(rayRange, CAMERA_MIN_DIST,
-			CAMERA_MAX_DIST); 
-
-		cameraNode_->SetPosition(aimPoint + rayDir *
-			rayRange);
-		cameraNode_->SetRotation(dir); 
-
+	if (result.body_)
+	{
+		rayRange = Min(rayRange,
+			result.distance_); 
 	}
+
+	rayRange = Clamp(rayRange, CAMERA_MIN_DIST,
+		CAMERA_MAX_DIST); 
+
+	cameraNode_->SetPosition(aimPoint + rayDir *
+		rayRange);
+	cameraNode_->SetRotation(dir); 
 }

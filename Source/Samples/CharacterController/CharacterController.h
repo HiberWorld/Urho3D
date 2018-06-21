@@ -17,13 +17,12 @@ const unsigned CTRL_LEFT = 4;
 const unsigned CTRL_RIGHT = 8;
 const unsigned CTRL_JUMP = 16;
 
-const float MOVEMENT_FORCE = 8.0f; 
-const float MOVEMENT_DECCELERATION = 2.0f; 
+const float MOVEMENT_FORCE = 0.8; 
+const float MOVEMENT_DECCELERATION = 0.2f; 
 const float INAIR_MOVE_FORCE = 0.02f; 
 const float JUMP_VELOCITY = 7.0f; 
 const float INAIR_MAX_TIME = 0.1f; 
 const float YAW_SENSITIVITY = 0.1f; 
-const float CHARACTER_FRICTION = 0.0f; 
 
 
 class CharacterController : public LogicComponent
@@ -55,6 +54,4 @@ private:
 	float timeInAir; 
 
 	Vector3 velocity_; 
-
-	WeakPtr<RigidBody> rb; 
 };
