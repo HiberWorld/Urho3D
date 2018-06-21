@@ -13,10 +13,10 @@
 CharacterController::CharacterController
 (Context* context) :
 	LogicComponent(context),
+	rb(nullptr),
 	grounded(false),
 	canJump(true),
 	timeInAir(0.0f),
-	moveMag_(0.0f),
 	velocity_(0.0f, 0.0f, 0.5f)
 {
 	SetUpdateEventMask(USE_FIXEDUPDATE); 
@@ -44,13 +44,21 @@ void CharacterController::Start()
 	SubscribeToEvent(GetNode(), E_NODECOLLISION,
 		URHO3D_HANDLER(CharacterController,
 			HandleNodeCollision));
+
+	if (!rb)
+		{
+			rb = GetComponent<RigidBody>(); 
+			//rb->SetFriction(0.0f);
+		}
 }
 
 void CharacterController::FixedUpdate(float timeStep)
 {
-	auto* rb = GetComponent<RigidBody>(); 
+
 	auto* animController = node_->GetComponent
 		<AnimationController>(true); 
+
+	//rb->SetFriction(CHARACTER_FRICTION); 
 
 	if (!grounded)
 	{

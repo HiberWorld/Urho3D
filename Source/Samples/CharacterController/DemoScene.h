@@ -40,4 +40,6 @@ private:
 	SharedPtr<Touch> touch; 
 
 	WeakPtr<CharacterController> character; 
+
+	bool firstPerson_; 
 };
