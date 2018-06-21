@@ -54,7 +54,6 @@ void CharacterController::Start()
 
 void CharacterController::FixedUpdate(float timeStep)
 {
-
 	auto* animController = node_->GetComponent
 		<AnimationController>(true); 
 
@@ -71,12 +70,18 @@ void CharacterController::FixedUpdate(float timeStep)
 	bool softGrounded = timeInAir < INAIR_MAX_TIME;
 
 	const Quaternion& rot = node_->GetRotation();
+	/*Quaternion floorAngle = Quaternion(Vector3(
+		0.0f, 1.0f, 0.0f), floorNormal); 
+	Quaternion rot = floorAngle * Quaternion(
+		node_->GetRotation);*/
+
 	Vector3 moveDir = Vector3::ZERO;
 	const Vector3& velocity(rb->
 		GetLinearVelocity());
 	const Vector3 planeVelocity(velocity.x_,
 		0.0f, velocity.z_);
 
+	/*Vector3 planeVelocity(velocity);*/
 	if (_PlayerControls.IsDown(CTRL_FORWARD))
 		moveDir += Vector3::FORWARD; 
 	if (_PlayerControls.IsDown(CTRL_BACK))
