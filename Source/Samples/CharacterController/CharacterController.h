@@ -17,10 +17,8 @@ const unsigned CTRL_LEFT = 4;
 const unsigned CTRL_RIGHT = 8;
 const unsigned CTRL_JUMP = 16;
 
-const float MOVEMENT_FORCE = 0.8f; 
-const float MOVEMENT_ACCELERATION = 0.02f; 
-const float MOVEMENT_DECCELERATION = 0.04f; 
-const float AGILITY = 15.5f; 
+const float MOVEMENT_FORCE = 0.8; 
+const float MOVEMENT_DECCELERATION = 0.2f; 
 const float INAIR_MOVE_FORCE = 0.02f; 
 const float JUMP_VELOCITY = 7.0f; 
 const float INAIR_MAX_TIME = 0.1f; 
@@ -54,8 +52,6 @@ private:
 	bool canJump; 
 
 	float timeInAir; 
-
-	float moveMag_; 
 
 	Vector3 velocity_; 
 };

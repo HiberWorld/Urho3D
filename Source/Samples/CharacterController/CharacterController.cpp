@@ -6,6 +6,7 @@
 #include <Urho3D/Physics/RigidBody.h>
 #include <Urho3D/Scene/Scene.h>
 #include <Urho3D/Scene/SceneEvents.h>
+#include "Urho3D/IO/Log.h"
 
 #include "CharacterController.h"
 
@@ -67,10 +68,9 @@ void CharacterController::FixedUpdate(float timeStep)
 		GetLinearVelocity());
 	const Vector3 planeVelocity(velocity.x_,
 		0.0f, velocity.z_);
-	const float speed(planeVelocity.Length()); 
 
 	if (_PlayerControls.IsDown(CTRL_FORWARD))
-		moveDir += Vector3::FORWARD;
+		moveDir += Vector3::FORWARD; 
 	if (_PlayerControls.IsDown(CTRL_BACK))
 		moveDir += Vector3::BACK;
 	if (_PlayerControls.IsDown(CTRL_LEFT))
@@ -80,6 +80,9 @@ void CharacterController::FixedUpdate(float timeStep)
 
 	if (moveDir.LengthSquared() > 0.0f)
 		moveDir.Normalize();
+
+	rb->ApplyImpulse(rot * moveDir *(softGrounded
+		? MOVEMENT_FORCE : INAIR_MOVE_FORCE)); 
 
 	if (softGrounded)
 	{
@@ -97,33 +100,15 @@ void CharacterController::FixedUpdate(float timeStep)
 			canJump = true; 
 		}
 
-		if (canJump)
-		{
-			const float moveMag(moveDir.Length());
-
-			if (moveMag > 0.0001)
-			{
-				moveMag_ = Lerp(moveMag_, 1.0f,
-					timeStep * MOVEMENT_ACCELERATION); 
-			}
-			else
-			{
-				moveMag_ = Lerp(moveMag_, 0.0f,
-					timeStep * MOVEMENT_DECCELERATION);
-			}
-
+		}
 			Vector3 inertia = -planeVelocity *
 				MOVEMENT_DECCELERATION;
+			URHO3D_LOGDEBUG(inertia.ToString()); 
 			rb->ApplyImpulse(inertia); 
 
-			velocity_ = velocity_.Lerp(rot * moveDir *
-				moveMag_ * MOVEMENT_FORCE, timeStep *
-				AGILITY); 
-			rb->ApplyImpulse(velocity_);
-		}
-	}
 	grounded = false; 
 }
+
 void CharacterController::HandleNodeCollision
 (StringHash eventTypes, VariantMap& eventData)
 {
