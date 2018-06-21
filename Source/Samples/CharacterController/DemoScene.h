@@ -21,7 +21,9 @@ public:
 	
 	~DemoScene() override; 
 
-	void Start() override; 
+	void Start() override;
+	void HandleKeyDown(StringHash, VariantMap & eventData);
+
 
 
 private: 
@@ -40,4 +42,8 @@ private:
 	SharedPtr<Touch> touch; 
 
 	WeakPtr<CharacterController> character; 
+
+	bool firstPerson_;
+
+	
 };

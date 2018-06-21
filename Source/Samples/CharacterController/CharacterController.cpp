@@ -16,8 +16,8 @@ CharacterController::CharacterController
 	grounded(false),
 	canJump(true),
 	timeInAir(0.0f),
-	moveMag_(0.0f),
-	velocity_(0.0f, 0.0f, 0.5f)
+	velocity_(0.0f, 0.0f, 0.5f),
+	rb(nullptr)
 {
 	SetUpdateEventMask(USE_FIXEDUPDATE); 
 }
@@ -44,6 +44,11 @@ void CharacterController::Start()
 	SubscribeToEvent(GetNode(), E_NODECOLLISION,
 		URHO3D_HANDLER(CharacterController,
 			HandleNodeCollision));
+
+	if (!rb)
+	{
+		rb = GetComponent<RigidBody>(); 
+	}
 }
 
 void CharacterController::FixedUpdate(float timeStep)
@@ -103,7 +108,7 @@ void CharacterController::FixedUpdate(float timeStep)
 		}
 			Vector3 inertia = -planeVelocity *
 				MOVEMENT_DECCELERATION;
-			URHO3D_LOGDEBUG(inertia.ToString()); 
+			//uyghyURHO3D_LOGDEBUG(inertia.ToString()); 
 			rb->ApplyImpulse(inertia); 
 
 	grounded = false; 

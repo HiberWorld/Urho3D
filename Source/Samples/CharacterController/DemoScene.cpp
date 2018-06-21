@@ -25,12 +25,13 @@
 #include "DemoScene.h"
 #include "CharacterController\Touch.h"
 
-#include <Urho3D\/DebugNew.h>
+#include <Urho3D/DebugNew.h>
 
 URHO3D_DEFINE_APPLICATION_MAIN(DemoScene)
 
 DemoScene::DemoScene(Context* context) :
-	Sample(context)
+	Sample(context),
+	firstPerson_(false)
 {
 	CharacterController::RegisterObject(context); 
 }
@@ -51,11 +52,28 @@ void DemoScene::Start()
 	SubscribeToEvents();
 
 	Sample::InitMouseMode(MM_RELATIVE); 
+
+	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(DemoScene, HandleKeyDown));
+}
+
+void DemoScene::HandleKeyDown(StringHash /*eventType*/, VariantMap& eventData)
+{
+	using namespace KeyDown;
+
+	int key = eventData[P_KEY].GetInt();
+
+	// Toggle console with F1
+
+		if (key == KEY_F)
+		{
+			firstPerson_ = !firstPerson_;
+		}
 }
 
 void DemoScene::CreateScene()
 {
-	auto* cache = GetSubsystem<ResourceCache>();
+	ResourceCache* cache = 
+		GetSubsystem<ResourceCache>();
 
 	scene_ = new Scene(context_); 
 
@@ -63,7 +81,7 @@ void DemoScene::CreateScene()
 	scene_->CreateComponent<PhysicsWorld>();
 
 	cameraNode_ = new Node(context_);
-	auto* camera = cameraNode_->
+	Camera* camera = cameraNode_->
 		CreateComponent<Camera>();
 	camera->SetFarClip(300.0f); 
 	GetSubsystem<Renderer>()->SetViewport(0,
@@ -101,16 +119,18 @@ void DemoScene::CreateScene()
 	object->SetMaterial(cache->GetResource<Material>
 		("Materials/Stone.xml"));
 
-	auto* rb = floorNode->CreateComponent<RigidBody>();
+	RigidBody* rb = floorNode->
+		CreateComponent<RigidBody>();
 	rb->SetCollisionLayer(2); 
-	auto* collider = floorNode->
+	CollisionShape* collider = floorNode->
 		CreateComponent<CollisionShape>();
 	collider->SetBox(Vector3::ONE);
 }
 
 void DemoScene::CreateAvatar()
 {
-	auto* cache = GetSubsystem<ResourceCache>();
+	ResourceCache* cache = 
+		GetSubsystem<ResourceCache>();
 
 	Node* objectNode = scene_->CreateChild("Avatar");
 	objectNode->SetPosition(Vector3(0.0f, 1.0f, 0.0f));
@@ -129,7 +149,7 @@ void DemoScene::CreateAvatar()
 	object->GetSkeleton().GetBone
 	("Mutant:Head")->animated_ = false; 
 
-	auto* rb = objectNode->
+	RigidBody* rb = objectNode->
 		CreateComponent<RigidBody>();
 	rb->SetCollisionLayer(1); 
 	rb->SetMass(1.0f); 
@@ -166,9 +186,9 @@ void DemoScene::HandleUpdate(StringHash eventType,
 
 	if (character)
 	{
-		character->_PlayerControls.Set(CTRL_FORWARD |
-		CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP, 
-			false);
+		character->_PlayerControls.Set
+		(CTRL_FORWARD |CTRL_BACK | CTRL_LEFT 
+			| CTRL_RIGHT | CTRL_JUMP, false);
 
 		if (touch)
 		{
@@ -249,7 +269,6 @@ void DemoScene::HandleUpdate(StringHash eventType,
 					_PlayerControls.yaw_, 
 					Vector3::UP));
 		}
-
 	}
 }
 
@@ -263,31 +282,51 @@ void DemoScene::HandlePostUpdate(
 
 	const Quaternion& rot = characterNode->
 		GetRotation();
-
 	Quaternion dir = rot * Quaternion(character->
 		_PlayerControls.pitch_, Vector3::RIGHT); 
 
-	Vector3 aimPoint = characterNode->GetPosition()
-		+ rot * Vector3(0.0f, 1.7f, 0.0f); 
+	Node* headNode = characterNode->GetChild
+	("Mutant:Head", true);
+	float limitPitch = Clamp(character->
+		_PlayerControls.pitch_, -45.0f, 45.0f); 
+	Quaternion headDir = rot * Quaternion(
+		limitPitch, Vector3(1.0f, 0.0f, 0.0f));
+	Vector3 headTarget = headNode->GetWorldPosition()
+		+ headDir * Vector3(0.0f, 0.0f, 1.0f);
+	headNode->LookAt(headTarget, 
+		Vector3(0.0f, 1.0f, 0.0f));
 
-	Vector3 rayDir = dir * Vector3::BACK; 
-	float rayRange = touch ? touch->
-		cameraDistance_ : CAMERA_INITIAL_DIST;
-	PhysicsRaycastResult result; 
-	scene_->GetComponent<PhysicsWorld>()->
-		RaycastSingle(result, Ray(aimPoint,
-			rayDir), rayRange, 2);
-
-	if (result.body_)
+	if (firstPerson_)
 	{
-		rayRange = Min(rayRange,
-			result.distance_); 
+		cameraNode_->SetPosition(headNode->
+			GetWorldPosition() + rot * 
+			Vector3(0.0f, 0.15f, 0.2f));
+		cameraNode_->SetRotation(dir);
 	}
+	else
+	{
+		Vector3 aimPoint = characterNode->GetPosition()
+			+ rot * Vector3(0.0f, 1.7f, 0.0f); 
 
-	rayRange = Clamp(rayRange, CAMERA_MIN_DIST,
-		CAMERA_MAX_DIST); 
+		Vector3 rayDir = dir * Vector3::BACK; 
+		float rayRange = touch ? touch->
+			cameraDistance_ : CAMERA_INITIAL_DIST;
+		PhysicsRaycastResult result; 
+		scene_->GetComponent<PhysicsWorld>()->
+			RaycastSingle(result, Ray(aimPoint,
+				rayDir), rayRange, 2);
 
-	cameraNode_->SetPosition(aimPoint + rayDir *
-		rayRange);
-	cameraNode_->SetRotation(dir); 
+		if (result.body_)
+		{
+			rayRange = Min(rayRange,
+				result.distance_); 
+		}
+
+		rayRange = Clamp(rayRange, CAMERA_MIN_DIST,
+			CAMERA_MAX_DIST); 
+
+		cameraNode_->SetPosition(aimPoint + rayDir *
+			rayRange);
+		cameraNode_->SetRotation(dir); 
+	}
 }

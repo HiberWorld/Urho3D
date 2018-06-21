@@ -54,4 +54,6 @@ private:
 	float timeInAir; 
 
 	Vector3 velocity_; 
+
+	WeakPtr<RigidBody> rb;
 };
