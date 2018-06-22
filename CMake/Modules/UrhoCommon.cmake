@@ -20,6 +20,11 @@
 # THE SOFTWARE.
 #
 
+if(URHO_COMMON_INCLUDED)
+    return()
+endif()
+set(URHO_COMMON_INCLUDED True)
+
 # Save the initial values of CC and CXX environment variables
 if (NOT CMAKE_CROSSCOMPILING)
     set (SAVED_CC $ENV{CC} CACHE INTERNAL "Initial value for CC")
@@ -184,6 +189,10 @@ if (CMAKE_PROJECT_NAME STREQUAL Urho3D)
         endif ()
         # It is not possible to turn SSE off on 64-bit MSVC and it appears it is also not able to do so safely on 64-bit GCC
         cmake_dependent_option (URHO3D_SSE "Enable SIMD instruction set (32-bit Web and Intel platforms only, including Android on Intel Atom); default to true on Intel and false on Web platform; the effective SSE level could be higher, see also URHO3D_DEPLOYMENT_TARGET and CMAKE_OSX_DEPLOYMENT_TARGET build options" "${URHO3D_DEFAULT_SIMD}" "NOT URHO3D_64BIT" TRUE)
+
+        if(WEB)
+            set(URHO3D_SSE FALSE)
+        endif ()
     endif ()
     cmake_dependent_option (URHO3D_HASH_DEBUG "Enable StringHash reversing and hash collision detection at the expense of memory and performance penalty" FALSE "NOT CMAKE_BUILD_TYPE STREQUAL Release" FALSE)
     cmake_dependent_option (URHO3D_3DNOW "Enable 3DNow! instruction set (Linux platform only); should only be used for older CPU with (legacy) 3DNow! support" "${HAVE_3DNOW}" "X86 AND CMAKE_SYSTEM_NAME STREQUAL Linux AND NOT URHO3D_SSE" FALSE)
@@ -625,7 +634,7 @@ else ()
             # We don't add these flags directly here for Xcode because we support Mach-O universal binary build
             # The compiler flags will be added later conditionally when the effective arch is i386 during build time (using XCODE_ATTRIBUTE target property)
             if (NOT XCODE)
-                if (URHO3D_64BIT)
+                if (URHO3D_64BIT AND NOT WEB)
                     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
                     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3")
                 else ()
@@ -636,6 +645,7 @@ else ()
                     endif ()
                     # The effective SSE level could be higher, see also URHO3D_DEPLOYMENT_TARGET and CMAKE_OSX_DEPLOYMENT_TARGET build options
                     # The -mfpmath=sse is not set in global scope but it may be set in local scope when building LuaJIT sub-library for x86 arch
+
                     if (URHO3D_SSE)
                         if (HAVE_SSE3)
                             set (SIMD_FLAG -msse3)
@@ -1828,6 +1838,7 @@ macro (_setup_target)
                 add_make_clean_files ($<TARGET_FILE_DIR:${TARGET_NAME}>/libUrho3D.js $<TARGET_FILE_DIR:${TARGET_NAME}>/libUrho3D.js.map)
             endif ()
         endif ()
+
         # Pass additional source files to linker with the supported flags, such as: js-library, pre-js, post-js, embed-file, preload-file, shell-file
         foreach (FILE ${SOURCE_FILES})
             get_property (EMCC_OPTION SOURCE ${FILE} PROPERTY EMCC_OPTION)
