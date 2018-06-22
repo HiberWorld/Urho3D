@@ -57,7 +57,7 @@ if (NOT CMAKE_PROJECT_NAME STREQUAL Urho3D)
         set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
     endif ()
 elseif (NOT BAKED_CMAKE_SOURCE_DIR)
-    set (BAKED_CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR})
+    set (BAKED_CMAKE_SOURCE_DIR ${URHO3D_SOURCE_DIR})
 endif ()
 
 # Makefile: Compiler options
