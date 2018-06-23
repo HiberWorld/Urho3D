@@ -1887,9 +1887,9 @@ macro (_setup_target)
     endif ()
     # Create symbolic links in the build tree
     if (ANDROID)
-        foreach (I AndroidManifest.xml build.gradle build.xml custom_rules.xml project.properties src res assets jni)
-            if (EXISTS ${URHO3D_SOURCE_DIR}/Android/${I} AND NOT EXISTS ${CMAKE_BINARY_DIR}/${I})    # No-ops when 'Android' is used as build tree
-                create_symlink (${URHO3D_SOURCE_DIR}/Android/${I} ${CMAKE_BINARY_DIR}/${I} FALLBACK_TO_COPY)
+        foreach (I AndroidManifest.xml build.gradle build.xml custom_rules.xml project.properties source res assets jni)
+            if (EXISTS ${CMAKE_SOURCE_DIR}/Android/${I} AND NOT EXISTS ${CMAKE_BINARY_DIR}/${I})    # No-ops when 'Android' is used as build tree
+                create_symlink (${CMAKE_SOURCE_DIR}/Android/${I} ${CMAKE_BINARY_DIR}/${I} FALLBACK_TO_COPY)
             endif ()
         endforeach ()
         set (ASSET_ROOT assets)
