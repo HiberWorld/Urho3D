@@ -1,3 +1,6 @@
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <Bullet/BulletDynamics/Character/btKinematicCharacterController.h>
+
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Core/ProcessUtils.h>
 #include <Urho3D/Engine/Engine.h>
