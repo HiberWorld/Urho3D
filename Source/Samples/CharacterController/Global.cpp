@@ -9,7 +9,7 @@ Global::Global(Context *contex) :
 Audio* audio = nullptr; 
 ResourceCache* cache = nullptr; 
 Engine* engine = nullptr; 
-FileSystem* filesystem = nullptr;
+//FileSystem* filesystem = nullptr;
 Graphics* graphics = nullptr; 
 Input* input = nullptr; 
 Localization* localization = nullptr; 
@@ -27,7 +27,7 @@ void InitGlobal(Context* context)
 	audio = context->GetSubsystem<Audio>();
 	cache = context->GetSubsystem<ResourceCache>();
 	engine = context->GetSubsystem<Engine>();
-	fileSystem = context->GetSubsystem<FileSystem>();
+	//fileSystem = context->GetSubsystem<FileSystem>();
 	graphics = context->GetSubsystem<Graphics>();
 	localization = context->GetSubsystem<Localization>();
 	renderer = context->GetSubsystem<Renderer>();

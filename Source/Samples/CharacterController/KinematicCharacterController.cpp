@@ -34,7 +34,7 @@ void KinematicCharacterController::RegisterObject(Context* context)
 
 void KinematicCharacterController::FixedUpdate(float timestep)
 {
-	const float MOVEMENT_SPEED = 10;
+	const float MOVEMENT_SPEED = 10.0f;
 
 	Vector3 moveDir; 
 
@@ -49,7 +49,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 
 	if (playerControls_.IsDown(CTRL_JUMP))
 	{
-		if (bulletController_->canJump)
+		if (bulletController_->onGround())
 		{
 			bulletController_->jump(btVector3(0,6,0));
 		}
@@ -59,13 +59,20 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 	{
 		moveDir.Normalize();
 
-		moveDir = node_->GetWorldRotation() * moveDir; 
+		moveDir = node_->GetWorldRotation() * moveDir;
 
 		if (bulletController_->onGround())
 			bulletController_->setWalkDirection(ToBtVector3
 			(moveDir * timestep * MOVEMENT_SPEED));
 		else
-			bulletController_->setWalkDirection(btVector3(0,0,0)); 
+			bulletController_->setWalkDirection(ToBtVector3(
+				moveDir * timestep * MOVEMENT_SPEED * 0.5f));
+	}
+	else
+	{
+		bulletController_->setWalkDirection(
+			btVector3(0, 0, 0));
+	}
 
 		btTransform t; 
 		t = bulletController_->getGhostObject()->
@@ -75,7 +82,6 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 
 		node_->SetWorldPosition(newPos);
 	}
-}
 	void KinematicCharacterController::Update(float timestep)
 	{
 		auto* input = GetSubsystem<Input>();
@@ -98,9 +104,11 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		btTransform startTransform; 
 		startTransform.setIdentity();
 		startTransform.setOrigin(btVector3(0, 10, 4));
-		startTransform.setRotation(ToBtQuaternion(Quaternion(90, 0, 0)));
+		startTransform.setRotation(ToBtQuaternion
+		(Quaternion(90, 0, 0)));
 
-		btConvexShape* capsule = new btCapsuleShape(diameter * 0.5, height - diameter);
+		btConvexShape* capsule = new btCapsuleShape
+		(diameter * 0.5, height - diameter);
 		height_ = height; 
 		diameter_ = diameter; 
 
@@ -109,7 +117,8 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 
 		ghostObject_ = new btPairCachingGhostObject();
 		ghostObject_->setWorldTransform(startTransform);
-		world->getBroadphase()->getOverlappingPairCache();
+		world->getBroadphase()->getOverlappingPairCache()->
+			setInternalGhostPairCallback(new btGhostPairCallback());
 		ghostObject_->setCollisionShape(capsule);
 		ghostObject_->setCollisionFlags(btCollisionObject::
 			CF_CHARACTER_OBJECT);
@@ -117,8 +126,8 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 			ghostObject_, capsule, 0.3f, btVector3(0, 0, 1));
 		bulletController_->setGravity(world->getGravity());
 
-		world->addCollisionObject(ghostObject_, btBroadphaseProxy::CharacterFilter,
-			btBroadphaseProxy::AllFilter); 
+		world->addCollisionObject(ghostObject_, btBroadphaseProxy::
+			CharacterFilter,btBroadphaseProxy::AllFilter); 
 		world->addAction(bulletController_);
 		bulletController_->setMaxJumpHeight(1.5); 
 	}

@@ -10,6 +10,7 @@ public:
 	SharedPtr<Node> cameraNode_;
 	float yaw_ = 0.0f; 
 	float pitch_ = 0.0f; 
+	bool firstPerson_ = false;
 
 	Node* charNode_ = nullptr; 
 
@@ -29,7 +30,9 @@ public:
 		engineParameters_[EP_FULL_SCREEN] = false; 
 		engineParameters_[EP_WINDOW_WIDTH] = 800; 
 		engineParameters_[EP_WINDOW_HEIGHT] = 600; 
-		engineParameters_[EP_RESOURCE_PATHS] = "GameData;Data;CoreData";
+		engineParameters_[EP_RESOURCE_PATHS] = "Data;CoreData";
+		input = GetSubsystem<Input>(); 
+		//fileSystem = GetSubsystem<FileSystem>();
 	}
 	void Start()
 	{
@@ -58,10 +61,21 @@ public:
 	{
 		/*scene_ = new Scene(context_);
 		File levelFile(context_, fileSystem->)*/
+		
+		ResourceCache* cache = GetSubsystem<ResourceCache>();
+		
+		scene_ = new Scene(context_); 
+		SharedPtr<File> levelFile = cache->GetFile
+		("LevelData/Scenes/Level.xml");
+		scene_->LoadXML(*levelFile);
+
+		/*scene_->CreateComponent<Octree>();
+		scene_->CreateComponent<PhysicsWorld>();*/
 
 		cameraNode_ = scene_->CreateChild("Camera"); 
 		cameraNode_->CreateComponent<Camera>();
 		cameraNode_->SetPosition(Vector3(0.0f, 5.0f, 0.0f)); 
+
 
 		charNode_ = CreateCharacter();
 	}
@@ -82,27 +96,108 @@ public:
 		(KinematicCharacterScene, HandlePostRenderUpdate));
 		SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(
 			KinematicCharacterScene, HandlePostUpdate));
+		/*SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(
+			KinematicCharacterScene, HandleKeyDown));*/
 	}
 
+	void HandleKeyDown(StringHash eventType, VariantMap& eventData)
+	{
+		using namespace KeyDown;
+
+		int key = eventData[P_KEY].GetInt();
+
+		if (key == KEY_F)
+		{
+			firstPerson_ = !firstPerson_;
+		}
+	}
 	void HandleUpdate(StringHash eventType, VariantMap& eventData)
 	{
 		using namespace Update; 
 		float timestep = eventData[P_TIMESTEP].GetFloat();
 
-		if (input->GetKeyPress(KEY_F1))
+		
+		/*if (input->GetKeyPress(KEY_F1))
 			console->Toggle();
 
 		if (input->GetKeyPress(KEY_F2))
-			debugHud->ToggleAll();
+			debugHud->ToggleAll();*/
 
 		IntVector2 mouseMovement = input->GetMouseMove(); 
 		yaw_ += MOUSE_SENSITIVITY * mouseMovement.x_;
 		pitch_ += MOUSE_SENSITIVITY * mouseMovement.y_;
-		pitch_ = Clamp(pitch_, -90.0f, 90.0f); 
+		pitch_ = Clamp(pitch_, -80.0f, 80.0f); 
+
+		charNode_->SetRotation(Quaternion(0.0f, yaw_, 0.0f));
 	}
+
 	Node*CreateCharacter()
 	{
+		Node* charNode = scene_->CreateChild(); 
+		charNode->SetPosition(Vector3(0.0f, 4.0f, 20.0f)); 
 
+		StaticModel* charObject = charNode->CreateComponent
+			<StaticModel>();
+		charObject->SetModel(cache->GetResource<Model>
+			("Models/Jack.mdl"));
+		charObject->SetCastShadows(true); 
+
+		KinematicCharacterController* charController =
+			charNode->CreateComponent<KinematicCharacterController>();
+		charController->CreatePhysComponents(1.9f, 0.5f); 
+		return charNode; 
 	}
 	const float MOUSE_SENSITIVITY = 0.1f;
+
+	void HandlePhysicsPreStep(StringHash eventType,
+		VariantMap& eventData)
+	{
+	}
+
+	void HandlePostRenderUpdate(StringHash eventType,
+		VariantMap& eventData)
+	{
+		scene_->GetComponent<PhysicsWorld>()->
+			DrawDebugGeometry(true); 
+	}
+	
+	void HandlePostUpdate(StringHash eventType,
+		VariantMap& eventData)
+	{
+		Quaternion rot = charNode_->GetRotation();
+		Quaternion dir = rot * Quaternion(pitch_,
+			Vector3::RIGHT); 
+		
+		/*Node* headNode = charNode_->
+			GetChild("Jack:Head", true); */
+
+		/*if (firstPerson_)
+		{
+			cameraNode_->SetPosition(headNode->
+				GetWorldPosition() + rot * Vector3
+				(0.0f, 0.15f, 0.2f));
+			cameraNode_->SetRotation(dir);
+		}*/
+			Vector3 aimPoint = charNode_->GetPosition() 
+				+ rot * Vector3(0.0f, 1.9f, 0.0f); 
+			Vector3 rayDir = dir * Vector3::BACK; 
+			float rayRange = 5.0f; 
+			PhysicsRaycastResult result; 
+			scene_->GetComponent<PhysicsWorld>()->
+				RaycastSingle(result, Ray(aimPoint,
+					rayDir), rayRange, 2); 
+
+			if (result.body_)
+				rayRange = Min(rayRange,
+					result.distance_); 
+			rayRange - Clamp(rayRange, 1.0f, 5.0f);
+
+			cameraNode_->SetPosition(aimPoint +
+				rayDir * rayRange); 
+			cameraNode_->SetRotation(dir); 
+
+		
+	}
 };
+
+URHO3D_DEFINE_APPLICATION_MAIN(KinematicCharacterScene)

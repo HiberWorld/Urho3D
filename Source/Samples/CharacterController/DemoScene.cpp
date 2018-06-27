@@ -1,4 +1,4 @@
-#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+/*#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <Bullet/BulletDynamics/Character/btKinematicCharacterController.h>
 
 #include <Urho3D/Core/CoreEvents.h>
@@ -59,8 +59,8 @@ void DemoScene::Start()
 	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(DemoScene, HandleKeyDown));
 }
 
-void DemoScene::HandleKeyDown(StringHash /*eventType*/, VariantMap& eventData)
-{
+void DemoScene::HandleKeyDown(StringHash /*eventType, VariantMap& eventData)
+/*{
 	using namespace KeyDown;
 
 	int key = eventData[P_KEY].GetInt();
@@ -125,7 +125,7 @@ void DemoScene::CreateScene()
 	(200.0f, 1.0f, 200.0f));
 	/*floorNode->SetRotation(Quaternion
 	(-30.0f, 0.0f, 0.0f));*/
-	StaticModel* object = floorNode->
+	/*StaticModel* object = floorNode->
 		CreateComponent<StaticModel>();
 	object->SetModel(cache->GetResource
 		<Model>("Models/Box.mdl")); 
@@ -345,4 +345,4 @@ void DemoScene::HandlePostUpdate(
 			aimPoint + rayDir * rayRange);
 		cameraNode_->SetRotation(dir); 
 	}
-}
+}*/

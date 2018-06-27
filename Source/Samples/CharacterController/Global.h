@@ -1,5 +1,5 @@
 #pragma once
-#include <Urho3D\Urho3DAll.h>
+#include <Urho3D/Urho3DAll.h>
 
 class Global : public Object
 {
@@ -12,7 +12,7 @@ public:
 extern Audio* audio; 
 extern ResourceCache* cache; 
 extern Engine* engine; 
-extern FileSystem* fileSystem; 
+//extern FileSystem* fileSystem; 
 extern Graphics* graphics; 
 extern Input* input; 
 extern Localization* localization; 

@@ -1,4 +1,4 @@
-#include <Urho3D/Core/Context.h>
+/*#include <Urho3D/Core/Context.h>
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/IO/MemoryBuffer.h>
 #include <Urho3D/Physics/PhysicsEvents.h>
@@ -72,14 +72,14 @@ void CharacterController::FixedUpdate(float timeStep)
 	Quaternion rot = floorAngle * Quaternion(
 		node_->GetRotation);*/
 
-	Vector3 moveDir = Vector3::ZERO;
+	/*Vector3 moveDir = Vector3::ZERO;
 	const Vector3& velocity(rb->
 		GetLinearVelocity());
 	const Vector3 planeVelocity(velocity.x_,
 		0.0f, velocity.z_);
 
 	/*Vector3 planeVelocity(velocity);*/
-	if (_PlayerControls.IsDown(CTRL_FORWARD))
+	/*if (_PlayerControls.IsDown(CTRL_FORWARD))
 		moveDir += Vector3::FORWARD; 
 	if (_PlayerControls.IsDown(CTRL_BACK))
 		moveDir += Vector3::BACK;
@@ -144,4 +144,4 @@ void CharacterController::HandleNodeCollision
 			}
 		}
 	}
-}
+}*/
