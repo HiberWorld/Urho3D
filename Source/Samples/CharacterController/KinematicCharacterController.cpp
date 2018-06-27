@@ -16,6 +16,7 @@ const int CTRL_LEFT = 4;
 const int CTRL_RIGHT = 8; 
 const int CTRL_JUMP = 16;
 
+
 KinematicCharacterController::KinematicCharacterController(Context* context)
 	: LogicComponent(context)
 {
@@ -30,6 +31,11 @@ KinematicCharacterController::~KinematicCharacterController()
 void KinematicCharacterController::RegisterObject(Context* context)
 {
 	context->RegisterFactory<KinematicCharacterController>();
+
+	URHO3D_ATTRIBUTE("Controls Yaw", float,
+		playerControls_.yaw_, 0.0f, AM_DEFAULT);
+	URHO3D_ATTRIBUTE("Controls Pitch", float,
+		playerControls_.pitch_, 0.0f, AM_DEFAULT);
 }
 
 void KinematicCharacterController::FixedUpdate(float timestep)

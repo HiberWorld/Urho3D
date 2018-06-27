@@ -1,6 +1,8 @@
 #include "Global.h"
 #include "KinematicCharacterController.h"
 
+const float YAW_SENSITIVITY = 0.1f;
+
 class KinematicCharacterScene : public Application
 {
 	URHO3D_OBJECT(KinematicCharacterScene, Application);
@@ -32,7 +34,6 @@ public:
 		engineParameters_[EP_WINDOW_HEIGHT] = 600; 
 		engineParameters_[EP_RESOURCE_PATHS] = "Data;CoreData";
 		input = GetSubsystem<Input>(); 
-		//fileSystem = GetSubsystem<FileSystem>();
 	}
 	void Start()
 	{
@@ -41,11 +42,19 @@ public:
 		CreateScene(); 
 		SetupViewport(); 
 		SubscribeToEvents(); 
+		SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER
+		(KinematicCharacterScene, HandleKeyDown));
 	}
 
 	void SetupViewport()
 	{
-		Camera* camera = cameraNode_->GetComponent<Camera>();
+		cameraNode_ = new Node(context_);
+		Camera* camera = cameraNode_->
+			CreateComponent<Camera>();
+		camera->SetFarClip(300.0f);
+		/*Camera* camera = cameraNode_->GetComponent<Camera>();*/
+		/*SharedPtr<Viewport> viewport(new Viewport(context_,
+			scene_, camera));*/
 		SharedPtr<Viewport> viewport(new Viewport(context_,
 			scene_, camera));
 		renderer->SetViewport(0, viewport); 
@@ -55,6 +64,19 @@ public:
 		VariantMap& eventData)
 	{
 
+	}
+
+	void KinematicCharacterScene::HandleKeyDown(StringHash
+		eventType, VariantMap& eventData)
+	{
+		using namespace KeyDown;
+
+		int key = eventData[P_KEY].GetInt();
+
+		if (key == KEY_F)
+		{
+			firstPerson_ = !firstPerson_;
+		}
 	}
 
 	void CreateScene()
@@ -72,12 +94,10 @@ public:
 		/*scene_->CreateComponent<Octree>();
 		scene_->CreateComponent<PhysicsWorld>();*/
 
-		cameraNode_ = scene_->CreateChild("Camera"); 
+		/*cameraNode_ = scene_->CreateChild("Camera"); 
 		cameraNode_->CreateComponent<Camera>();
-		cameraNode_->SetPosition(Vector3(0.0f, 5.0f, 0.0f)); 
+		cameraNode_->SetPosition(Vector3(0.0f, 5.0f, 0.0f)); */
 
-
-		charNode_ = CreateCharacter();
 	}
 
 	void MoveCamera(float timeStep)
@@ -111,6 +131,32 @@ public:
 			firstPerson_ = !firstPerson_;
 		}
 	}
+
+	Node*CreateCharacter()
+	{
+		Node* charNode = scene_->CreateChild();
+		charNode->SetPosition(Vector3(0.0f, 4.0f, 20.0f));
+
+		/*StaticModel* charObject = charNode->CreateComponent
+		<StaticModel>();*/
+
+		AnimatedModel* charObject = charNode->CreateComponent
+			<AnimatedModel>();
+		/*charObject->SetModel(cache->GetResource<Model>
+		("Models/Jack.mdl"));*/
+		charObject->SetModel(cache->GetResource<Model>
+			("Models/Mutant/Mutant.mdl"));
+		charObject->SetCastShadows(true);
+
+		charObject->GetSkeleton().GetBone
+		("Mutant:Head")->animated_ = false;
+
+		KinematicCharacterController* charController =
+			charNode->CreateComponent<KinematicCharacterController>();
+		charController->CreatePhysComponents(1.9f, 0.5f);
+		return charNode;
+	}
+
 	void HandleUpdate(StringHash eventType, VariantMap& eventData)
 	{
 		using namespace Update; 
@@ -123,30 +169,34 @@ public:
 		if (input->GetKeyPress(KEY_F2))
 			debugHud->ToggleAll();*/
 
-		IntVector2 mouseMovement = input->GetMouseMove(); 
+		/*IntVector2 mouseMovement = input->GetMouseMove(); 
 		yaw_ += MOUSE_SENSITIVITY * mouseMovement.x_;
 		pitch_ += MOUSE_SENSITIVITY * mouseMovement.y_;
 		pitch_ = Clamp(pitch_, -80.0f, 80.0f); 
 
-		charNode_->SetRotation(Quaternion(0.0f, yaw_, 0.0f));
+		charNode_->SetRotation(Quaternion(0.0f, yaw_, 0.0f));*/
+
+		charNode_->GetComponent<KinematicCharacterController>()->
+			playerControls_.yaw_ += (float)input->GetMouseMoveX() *
+			YAW_SENSITIVITY; 
+		charNode_->GetComponent<KinematicCharacterController>()->
+			playerControls_.pitch_ += (float)input->GetMouseMoveY() *
+			YAW_SENSITIVITY; 
+
+		charNode_->GetComponent<KinematicCharacterController>()->
+			playerControls_.pitch_ = Clamp(charNode_->GetComponent
+				<KinematicCharacterController>()->playerControls_.pitch_,
+				-80.0f, 80.0f);
+
+		charNode_->SetRotation(Quaternion(charNode_->GetComponent
+			<KinematicCharacterController>()->playerControls_.yaw_,
+			Vector3::UP));
+			
+			
+
+
 	}
 
-	Node*CreateCharacter()
-	{
-		Node* charNode = scene_->CreateChild(); 
-		charNode->SetPosition(Vector3(0.0f, 4.0f, 20.0f)); 
-
-		StaticModel* charObject = charNode->CreateComponent
-			<StaticModel>();
-		charObject->SetModel(cache->GetResource<Model>
-			("Models/Jack.mdl"));
-		charObject->SetCastShadows(true); 
-
-		KinematicCharacterController* charController =
-			charNode->CreateComponent<KinematicCharacterController>();
-		charController->CreatePhysComponents(1.9f, 0.5f); 
-		return charNode; 
-	}
 	const float MOUSE_SENSITIVITY = 0.1f;
 
 	void HandlePhysicsPreStep(StringHash eventType,

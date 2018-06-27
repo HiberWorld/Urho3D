@@ -16,6 +16,7 @@ public:
 	Controls playerControls_; 
 
 	void CreatePhysComponents(float height, float diameter);
+	void HandleKeyDown(StringHash, VariantMap & eventData);
 
 	btPairCachingGhostObject* ghostObject_; 
 	btKinematicCharacterController* bulletController_; 
