@@ -113,7 +113,7 @@ public:
 		IntVector2 mouseMovement = input->GetMouseMove(); 
 		yaw_ += MOUSE_SENSITIVITY * mouseMovement.x_;
 		pitch_ += MOUSE_SENSITIVITY * mouseMovement.y_;
-		pitch_ = Clamp(pitch_, -80.0f, 80.0f); 
+		pitch_ = Clamp(pitch_, -90.0f, 90.0f); 
 
 		charNode_->SetRotation(Quaternion(0.0f, yaw_, 0.0f));
 	}

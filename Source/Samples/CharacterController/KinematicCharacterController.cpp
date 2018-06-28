@@ -18,7 +18,10 @@ const int CTRL_JUMP = 16;
 
 
 KinematicCharacterController::KinematicCharacterController(Context* context)
-	: LogicComponent(context)
+	: LogicComponent(context),
+	grounded_(false),
+	canJump_(true),
+	inAirTimer_(0.0f)
 {
 	SetUpdateEventMask(USE_FIXEDUPDATE | USE_UPDATE);
 }
@@ -36,6 +39,13 @@ void KinematicCharacterController::RegisterObject(Context* context)
 		playerControls_.yaw_, 0.0f, AM_DEFAULT);
 	URHO3D_ATTRIBUTE("Controls Pitch", float,
 		playerControls_.pitch_, 0.0f, AM_DEFAULT);
+	URHO3D_ATTRIBUTE("Grounded", bool, 
+		grounded_, false,AM_DEFAULT);
+	URHO3D_ATTRIBUTE("Can Jump", bool,
+		canJump_, true,AM_DEFAULT);
+	URHO3D_ATTRIBUTE("In Air Timer", float, 
+		inAirTimer_,0.0f, AM_DEFAULT);
+
 }
 
 void KinematicCharacterController::FixedUpdate(float timestep)
@@ -43,6 +53,13 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 	const float MOVEMENT_SPEED = 10.0f;
 
 	Vector3 moveDir; 
+
+	if (!bulletController_->onGround())
+		inAirTimer_ += timestep;
+	else
+		inAirTimer_ = 0.0f; 
+
+	 bool softGrounded = inAirTimer_ < 0.1; 
 
 	if (playerControls_.IsDown(CTRL_FORWARD))
 		moveDir += Vector3::FORWARD;
@@ -53,12 +70,20 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 	if (playerControls_.IsDown(CTRL_RIGHT))
 		moveDir += Vector3::RIGHT;
 
+	if (softGrounded)
+	{
 	if (playerControls_.IsDown(CTRL_JUMP))
 	{
-		if (bulletController_->onGround())
+		//if (bulletController_->onGround())
+		if(canJump_)
 		{
-			bulletController_->jump(btVector3(0,6,0));
+			bulletController_->jump(btVector3(0, 7, 0));
+			canJump_ = false;
 		}
+	}
+	else
+		canJump_ = true; 
+
 	}
 	
 	if (moveDir.LengthSquared() > 0.0f)
