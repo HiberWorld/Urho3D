@@ -24,8 +24,16 @@ public:
 	float height_; 
 	float diameter_; 
 
+
 private:
 	virtual void Start() override; 
 	virtual void FixedUpdate(float timestep) override; 
 	virtual void Update(float timestep) override; 
+
+	bool grounded_; 
+
+	bool canJump_;
+
+	float inAirTimer_;
+
 };
