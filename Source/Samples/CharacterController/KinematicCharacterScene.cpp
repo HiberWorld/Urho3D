@@ -88,6 +88,8 @@ public:
 	
 	void SubscribeToEvents()
 	{
+		SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(
+			KinematicCharacterScene, HandleKeyDown));
 		SubscribeToEvent(E_UPDATE, URHO3D_HANDLER
 		(KinematicCharacterScene, HandleUpdate));
 		SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER
@@ -96,8 +98,6 @@ public:
 		(KinematicCharacterScene, HandlePostRenderUpdate));
 		SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(
 			KinematicCharacterScene, HandlePostUpdate));
-		/*SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(
-			KinematicCharacterScene, HandleKeyDown));*/
 	}
 
 	void HandleKeyDown(StringHash eventType, VariantMap& eventData)
@@ -134,19 +134,28 @@ public:
 	Node*CreateCharacter()
 	{
 		Node* charNode = scene_->CreateChild(); 
-		charNode->SetPosition(Vector3(0.0f, 4.0f, 20.0f)); 
+		charNode->SetPosition(Vector3(0.0f, 4.0f, 20.0f));
+		
+		Node* adjustNode = charNode->CreateChild("AdjNone");
+		adjustNode->SetRotation(Quaternion(180, Vector3
+		(0.0f, 1.0f, 0.0f)));
 
-		StaticModel* charObject = charNode->CreateComponent
-			<StaticModel>();
+		AnimatedModel* charObject = adjustNode->CreateComponent
+			<AnimatedModel>();
+
 		charObject->SetModel(cache->GetResource<Model>
-			("Models/Jack.mdl"));
+			("Models/Mutant/Mutant.mdl"));
 		charObject->SetCastShadows(true); 
+
+		charObject->GetSkeleton().GetBone(
+			"Mutant:Head")->animated_ = false;
 
 		KinematicCharacterController* charController =
 			charNode->CreateComponent<KinematicCharacterController>();
 		charController->CreatePhysComponents(1.9f, 0.5f); 
 		return charNode; 
 	}
+
 	const float MOUSE_SENSITIVITY = 0.1f;
 
 	void HandlePhysicsPreStep(StringHash eventType,
@@ -168,20 +177,37 @@ public:
 		Quaternion dir = rot * Quaternion(pitch_,
 			Vector3::RIGHT); 
 		
-		/*Node* headNode = charNode_->
-			GetChild("Jack:Head", true); */
+		Node* headNode = charNode_->
+			GetChild("Mutant:Head", true); 
 
-		/*if (firstPerson_)
+		/*float limitPitch = Clamp(pitch_, -45.0f, 45.0f);
+		Quaternion headDir = rot * Quaternion(limitPitch,
+			Vector3(1.0f, 0.0f, 0.0f));
+		Vector3 headWorldTarget = headNode->GetWorldPosition() +
+			headDir * Vector3(0.0f, 0.0f, -1.0f);
+		headNode->LookAt(headWorldTarget, Vector3(0.0f, 1.0f, 0.0f));*/
+
+		Vector3 aimPoint = charNode_->GetPosition() 
+			+ rot * Vector3(0.0f, 1.9f, 0.0f); 
+		Vector3 rayDir = dir * Vector3::BACK; 
+		float rayRange = 5.0f; 
+
+		if (firstPerson_)
 		{
 			cameraNode_->SetPosition(headNode->
 				GetWorldPosition() + rot * Vector3
-				(0.0f, 0.15f, 0.2f));
+			(0.0f, 0.15f, 0.2f));
 			cameraNode_->SetRotation(dir);
-		}*/
-			Vector3 aimPoint = charNode_->GetPosition() 
-				+ rot * Vector3(0.0f, 1.9f, 0.0f); 
-			Vector3 rayDir = dir * Vector3::BACK; 
-			float rayRange = 5.0f; 
+			/*cameraNode_->SetPosition(headNode->
+				GetWorldPosition() + rot * Vector3
+				(0.0f, 0.15f, 0.2f));
+			cameraNode_->SetRotation(dir);*/
+
+		}
+
+		else
+		{
+
 			PhysicsRaycastResult result; 
 			scene_->GetComponent<PhysicsWorld>()->
 				RaycastSingle(result, Ray(aimPoint,
@@ -196,6 +222,7 @@ public:
 				rayDir * rayRange); 
 			cameraNode_->SetRotation(dir); 
 
+		}
 		
 	}
 };
