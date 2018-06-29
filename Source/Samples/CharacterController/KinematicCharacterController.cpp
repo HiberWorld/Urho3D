@@ -28,7 +28,6 @@ KinematicCharacterController::KinematicCharacterController(Context* context)
 
 KinematicCharacterController::~KinematicCharacterController()
 {
-
 }
 
 void KinematicCharacterController::RegisterObject(Context* context)
@@ -50,7 +49,8 @@ void KinematicCharacterController::RegisterObject(Context* context)
 
 void KinematicCharacterController::FixedUpdate(float timestep)
 {
-	const float MOVEMENT_SPEED = 10.0f;
+	const float MOVEMENT_SPEED = 6.0f;
+	const float AIR_CONTROL = 0.25f; 
 
 	Vector3 moveDir; 
 
@@ -58,8 +58,6 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		inAirTimer_ += timestep;
 	else
 		inAirTimer_ = 0.0f; 
-
-	 bool softGrounded = inAirTimer_ < 0.1; 
 
 	if (playerControls_.IsDown(CTRL_FORWARD))
 		moveDir += Vector3::FORWARD;
@@ -70,20 +68,13 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 	if (playerControls_.IsDown(CTRL_RIGHT))
 		moveDir += Vector3::RIGHT;
 
-	if (softGrounded)
+	if (infinityJump)
 	{
-	if (playerControls_.IsDown(CTRL_JUMP))
-	{
-		//if (bulletController_->onGround())
-		if(canJump_)
-		{
-			bulletController_->jump(btVector3(0, 7, 0));
-			canJump_ = false;
-		}
+		InfiniteJump();
 	}
 	else
-		canJump_ = true; 
-
+	{
+		NaturalJump();
 	}
 	
 	if (moveDir.LengthSquared() > 0.0f)
@@ -97,7 +88,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 			(moveDir * timestep * MOVEMENT_SPEED));
 		else
 			bulletController_->setWalkDirection(ToBtVector3(
-				moveDir * timestep * MOVEMENT_SPEED * 0.5f));
+				moveDir * timestep * MOVEMENT_SPEED * AIR_CONTROL));
 	}
 	else
 	{
@@ -113,6 +104,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 
 		node_->SetWorldPosition(newPos);
 	}
+
 	void KinematicCharacterController::Update(float timestep)
 	{
 		auto* input = GetSubsystem<Input>();
@@ -130,6 +122,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		t.setRotation(ToBtQuaternion(node_->GetRotation())); 
 		bulletController_->getGhostObject()->setWorldTransform(t); 
 	}
+
 	void KinematicCharacterController::CreatePhysComponents(float height, float diameter)
 	{
 		btTransform startTransform; 
@@ -163,7 +156,38 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		bulletController_->setMaxJumpHeight(1.5); 
 	}
 
+	void KinematicCharacterController::InfiniteJump()
+	{
+		if (playerControls_.IsDown(CTRL_JUMP))
+		{
+			if (bulletController_->onGround())
+			{
+				bulletController_->jump(btVector3(0, 7, 0));
+
+			}
+		}
+	}
+
+	void KinematicCharacterController::NaturalJump()
+	{
+		bool softGrounded = inAirTimer_ < 0.1;
+
+		if (softGrounded)
+		{
+			if (playerControls_.IsDown(CTRL_JUMP))
+			{
+				if (canJump_)
+				{
+					bulletController_->jump(btVector3(0, 7, 0));
+					canJump_ = false;
+				}
+			}
+			else
+				canJump_ = true;
+		}
+	}
+
 	void KinematicCharacterController::Start()
 	{
-
+		infinityJump = false; 
 	}

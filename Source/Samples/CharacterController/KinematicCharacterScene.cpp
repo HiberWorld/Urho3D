@@ -41,6 +41,8 @@ public:
 		CreateScene(); 
 		SetupViewport(); 
 		SubscribeToEvents(); 
+
+		
 	}
 
 	void SetupViewport()
@@ -74,12 +76,6 @@ public:
 		charNode_ = CreateCharacter();
 	}
 
-	void MoveCamera(float timeStep)
-	{
-		if (ui->GetFocusElement())
-			return;
-	}
-	
 	void SubscribeToEvents()
 	{
 		SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(
@@ -105,6 +101,7 @@ public:
 			firstPerson_ = !firstPerson_;
 		}
 	}
+
 	void HandleUpdate(StringHash eventType, VariantMap& eventData)
 	{
 		using namespace Update; 
