@@ -1,5 +1,7 @@
 #include "Global.h"
-#include "Urho3D/IO/Log.h"
+#include "LinearMath\btGeometryUtil.h"
+#include "LinearMath\btVector3.h"
+#include "Urho3D\Core\Timer.h"
 #include "KinematicCharacterController.h"
 
 class KinematicCharacterScene : public Application
@@ -42,7 +44,6 @@ public:
 		CreateScene(); 
 		SetupViewport(); 
 		SubscribeToEvents(); 
-
 		
 	}
 
@@ -173,17 +174,45 @@ public:
 		Vector3 rayDir = dir * Vector3::BACK; 
 		float rayRange = 5.0f; 
 
-		Vector3 firstPersonPos = headNode->GetPosition();
-		Vector3 currentPos = Vector3(firstPersonPos - 
-			cameraNode_->GetPosition());
+		Vector3 firstPersonPos = headNode->GetWorldPosition();
 
-		/*if (firstPerson_)
+		Vector3 currentPos = firstPersonPos - cameraNode_->
+			GetPosition(); 
+
+		float transitionrate = 0.5f;
+		if (cameraNode_->GetPosition() != firstPersonPos
+			&& firstPerson_)
 		{
-			cameraNode_->SetPosition(headNode->
+			if (cameraNode_->GetPosition() != firstPersonPos)
+			{
+				if (Abs(cameraNode_->
+					GetPosition()-firstPersonPos 
+					< currentPos.Length / 0.5f * time))
+				{
+					cameraNode_->SetPosition(firstPersonPos);
+				}
+				else
+				{
+					Vector3 newPos; 
+					newPos += currentPos / 0.5f * time;
+
+					cameraNode_->SetPosition(newPos);
+				}
+			}
+
+			if (cameraNode_->GetPosition() == firstPersonPos)
+			{
+				cameraNode_->SetPosition(headNode->
+					GetWorldPosition() + rot * Vector3
+					(0.0f, 0.15f, 0.2f));
+
+					cameraNode_->SetRotation(dir);
+			}
+
+			/*cameraNode_->SetPosition(headNode->
 				GetWorldPosition() + rot * Vector3
 			(0.0f, 0.15f, 0.2f));
-			cameraNode_->SetRotation(dir);
-		}*/
+			cameraNode_->SetRotation(dir);*/
 
 		if (firstPerson_)
 		{
