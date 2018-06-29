@@ -1027,7 +1027,7 @@ macro (define_resource_dirs)
     endif ()
     # If not explicitly specified then use the Urho3D project structure convention
     if (NOT ARG_GLOB_PATTERNS)
-        set (ARG_GLOB_PATTERNS ${URHO3D_SOURCE_DIR}/bin/*Data)
+        set (ARG_GLOB_PATTERNS ${CMAKE_SOURCE_DIR}/bin/*Data)
     endif ()
     file (GLOB GLOB_RESULTS ${ARG_GLOB_PATTERNS})
     unset (GLOB_DIRS)
