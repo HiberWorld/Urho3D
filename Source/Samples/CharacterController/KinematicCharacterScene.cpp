@@ -1,4 +1,5 @@
 #include "Global.h"
+#include "Urho3D/IO/Log.h"
 #include "KinematicCharacterController.h"
 
 class KinematicCharacterScene : public Application
@@ -157,6 +158,9 @@ public:
 	void HandlePostUpdate(StringHash eventType,
 		VariantMap& eventData)
 	{
+		using namespace PostUpdate;
+		float timestep = eventData[P_TIMESTEP].GetFloat();
+
 		Quaternion rot = charNode_->GetRotation();
 		Quaternion dir = rot * Quaternion(pitch_,
 			Vector3::RIGHT); 
@@ -169,12 +173,47 @@ public:
 		Vector3 rayDir = dir * Vector3::BACK; 
 		float rayRange = 5.0f; 
 
-		if (firstPerson_)
+		Vector3 firstPersonPos = headNode->GetPosition();
+		Vector3 currentPos = Vector3(firstPersonPos - 
+			cameraNode_->GetPosition());
+
+		/*if (firstPerson_)
 		{
 			cameraNode_->SetPosition(headNode->
 				GetWorldPosition() + rot * Vector3
 			(0.0f, 0.15f, 0.2f));
 			cameraNode_->SetRotation(dir);
+		}*/
+
+		if (firstPerson_)
+		{
+			if (headNode->GetPosition() !=
+				firstPersonPos)
+			{
+				if (Urho3D::Abs(Vector3(
+					cameraNode_->GetPosition()-
+					firstPersonPos).Length() < 
+					currentPos.Length() / 50.0f 
+					* timestep))
+				{
+					cameraNode_->SetPosition(
+						firstPersonPos);
+				}
+			else
+			{
+
+				/*cameraNode_->SetPosition(headNode->
+					GetWorldPosition() + rot * Vector3
+					(0.0f, 0.15f, 0.2f));
+				cameraNode_->SetRotation(dir);*/
+
+				URHO3D_LOGDEBUG("At Head pos");
+				 
+				cameraNode_->SetPosition(
+					currentPos / 50.0f * 
+					timestep);
+			}
+		}
 
 		}
 
