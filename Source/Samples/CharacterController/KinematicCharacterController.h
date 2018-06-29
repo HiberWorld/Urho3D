@@ -16,7 +16,9 @@ public:
 	Controls playerControls_; 
 
 	void CreatePhysComponents(float height, float diameter);
-	//void HandleKeyDown(StringHash, VariantMap & eventData);
+	void SetAirControl(float airResistance); 
+	void SetJumpForce(float jumpForce);
+	void SetMovementSpeed(float speed);
 
 	btPairCachingGhostObject* ghostObject_; 
 	btKinematicCharacterController* bulletController_; 
@@ -30,7 +32,7 @@ private:
 	virtual void Start() override; 
 	virtual void FixedUpdate(float timestep) override; 
 	virtual void Update(float timestep) override; 
-	void NaturalJump();
+	void DefaultJump();
 	void InfiniteJump(); 
 
 	bool grounded_; 

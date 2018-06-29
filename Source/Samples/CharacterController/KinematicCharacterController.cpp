@@ -16,6 +16,10 @@ const int CTRL_LEFT = 4;
 const int CTRL_RIGHT = 8; 
 const int CTRL_JUMP = 16;
 
+ float MOVEMENT_SPEED;
+ float JUMP_FORCE; 
+ float AIR_CONTROL;
+
 
 KinematicCharacterController::KinematicCharacterController(Context* context)
 	: LogicComponent(context),
@@ -47,10 +51,18 @@ void KinematicCharacterController::RegisterObject(Context* context)
 
 }
 
+void KinematicCharacterController::Start()
+{
+	infinityJump = false;
+	SetMovementSpeed(6.0f);
+	SetJumpForce(7.0f);
+	SetAirControl(.25f);
+}
+
 void KinematicCharacterController::FixedUpdate(float timestep)
 {
-	const float MOVEMENT_SPEED = 6.0f;
-	const float AIR_CONTROL = 0.25f; 
+	/*const float MOVEMENT_SPEED = 6.0f;
+	const float AIR_CONTROL = 0.25f; */
 
 	Vector3 moveDir; 
 
@@ -74,7 +86,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 	}
 	else
 	{
-		NaturalJump();
+		DefaultJump();
 	}
 	
 	if (moveDir.LengthSquared() > 0.0f)
@@ -156,19 +168,35 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		bulletController_->setMaxJumpHeight(1.5); 
 	}
 
+	void KinematicCharacterController::SetAirControl(float airControlMod)
+	{
+		AIR_CONTROL = airControlMod; 
+	}
+
+	void KinematicCharacterController::SetJumpForce(float jumpForce)
+	{
+		JUMP_FORCE = jumpForce;
+	}
+
+	void KinematicCharacterController::SetMovementSpeed(float speed)
+	{
+		MOVEMENT_SPEED = speed; 
+	}
+
 	void KinematicCharacterController::InfiniteJump()
 	{
 		if (playerControls_.IsDown(CTRL_JUMP))
 		{
 			if (bulletController_->onGround())
 			{
-				bulletController_->jump(btVector3(0, 7, 0));
+				bulletController_->jump(btVector3
+				(0, JUMP_FORCE, 0));
 
 			}
 		}
 	}
 
-	void KinematicCharacterController::NaturalJump()
+	void KinematicCharacterController::DefaultJump()
 	{
 		bool softGrounded = inAirTimer_ < 0.1;
 
@@ -178,7 +206,9 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 			{
 				if (canJump_)
 				{
-					bulletController_->jump(btVector3(0, 7, 0));
+					bulletController_->jump(btVector3
+					(0, JUMP_FORCE, 0));
+
 					canJump_ = false;
 				}
 			}
@@ -187,7 +217,3 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		}
 	}
 
-	void KinematicCharacterController::Start()
-	{
-		infinityJump = false; 
-	}
