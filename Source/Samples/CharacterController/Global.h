@@ -26,6 +26,7 @@ extern DebugHud* debugHud;
 extern Global* global;
 
 void InitGlobal(Context* context);
+void CameraMovement(float duration); 
 
 #define UI_ROOT ui->GetRoot()
 
