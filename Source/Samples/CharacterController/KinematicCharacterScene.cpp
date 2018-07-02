@@ -3,10 +3,6 @@
 #include "LinearMath\btVector3.h"
 #include "Urho3D\Core\Timer.h"
 #include "KinematicCharacterController.h"
-#include "tween.h"
-#include "tweenpoint.h"
-#include "tweentraits.h"
-#include "tweeny.h"
 
 class KinematicCharacterScene : public Application
 {
@@ -166,54 +162,8 @@ public:
 	{
 		using namespace PostUpdate;
 		float timestep = eventData[P_TIMESTEP].GetFloat();
-
-		/*Quaternion rot = charNode_->GetRotation();
-		Quaternion dir = rot * Quaternion(pitch_,
-			Vector3::RIGHT);
-
-		Node* headNode = charNode_->
-			GetChild("Mutant:Head", true);
-
-		Vector3 aimPoint = charNode_->GetPosition()
-			+ rot * Vector3(0.0f, 1.9f, 0.0f);
-		Vector3 rayDir = dir * Vector3::BACK;
-		float rayRange = 5.0f;
-
-		Vector3 firstPersonPos = headNode->GetPosition();
-		Vector3 currentPos = Vector3(firstPersonPos -
-			cameraNode_->GetPosition());
-
-		Vector3 currentPos = firstPersonPos - cameraNode_->
-			GetPosition(); 
-
-		float transitionrate = 0.5f;
-
-		if (firstPerson_)
-		{
-				cameraNode_->SetPosition(headNode->
-					GetWorldPosition() + rot * Vector3
-					(0.0f, 0.15f, 0.2f));
-				cameraNode_->SetRotation(dir);
-		}
-
-		else
-		{
-			PhysicsRaycastResult result;
-			scene_->GetComponent<PhysicsWorld>()->
-				RaycastSingle(result, Ray(aimPoint,
-					rayDir), rayRange, 2);
-
-			if (result.body_)
-				rayRange = Min(rayRange,
-					result.distance_);
-			rayRange - Clamp(rayRange, 1.0f, 5.0f);
-
-			cameraNode_->SetPosition(aimPoint +
-				rayDir * rayRange);
-			cameraNode_->SetRotation(dir);
-
-		}*/
-
+		
+		CameraMovement(timestep);
 	}
 
 	void CameraMovement(float duration)
@@ -224,93 +174,70 @@ public:
 
 		Node* headNode = charNode_->
 			GetChild("Mutant:Head", true);
-		//auto camAnim = cameraNode_->GetComponent<AnimationController>();
 
 		Vector3 aimPoint = charNode_->GetPosition()
 			+ rot * Vector3(0.0f, 1.9f, 0.0f);
 		Vector3 rayDir = dir * Vector3::BACK;
 		float rayRange = 5.0f;
 
-		Vector3 firstPersonPos = headNode->GetPosition();
-		Vector3 currentPos = Vector3(firstPersonPos -
+		Vector3 firstPersonPos = Vector3(headNode->GetPosition() + rot * 
+			Vector3(0.0f, 0.15f, 0.2f));
+
+		Vector3 thirdPersonPos = Vector3(0.0f, 5.0f, 0.0f);
+
+		Vector3 towardsFPS = Vector3(firstPersonPos -
 			cameraNode_->GetPosition());
 
-		SharedPtr<ObjectAnimation> cameraAnimation
-		(new ObjectAnimation(context_));
+		Vector3 towardsTPS = Vector3(thirdPersonPos -
+			cameraNode_->GetPosition());
 
-		SharedPtr<ValueAnimation> toThirdPersonAnimation
-		(new ValueAnimation(context_));
+		float transitionRate = 0.5f; 
 
-		SharedPtr<ValueAnimation> toFirstPersonAnimation
-		(new ValueAnimation(context_));
-
-		toThirdPersonAnimation->SetInterpolationMethod(IM_LINEAR);
-		toThirdPersonAnimation->SetSplineTension(0.7f);
-
-		toFirstPersonAnimation->SetInterpolationMethod(IM_LINEAR);
-		toFirstPersonAnimation->SetSplineTension(0.7f);
-
-
-		if (firstPerson_)
+		if (firstPerson_ && cameraNode_->GetPosition() !=
+			firstPersonPos)
 		{
-			Vector3 firstPersonPos = headNode->GetPosition();
-			
-			toFirstPersonAnimation->SetKeyFrame(0.0f, Vector3(0.0f, 5.0f, 0.0f));
-			toFirstPersonAnimation->SetKeyFrame(4.0f, Vector3(headNode->
-			GetPosition()));
-
-			cameraAnimation->AddAttributeAnimation
-			("Position", toFirstPersonAnimation, WM_CLAMP);
-
-			cameraNode_->SetObjectAnimation(cameraAnimation);
-			cameraNode_->SetPosition(
-				firstPersonPos);
-			cameraNode_->SetRotation(dir);
-
-			/*cameraNode_->SetPosition(headNode->
-					GetWorldPosition() + rot * Vector3
-					(0.0f, 0.15f, 0.2f));
-			cameraNode_->SetRotation(dir);*/
-
-			/*if (headNode->GetPosition() !=
-				firstPersonPos)
+			if (Abs(Vector3(cameraNode_->GetPosition()-
+				firstPersonPos).Length())< towardsFPS.Length()
+				/transitionRate * duration)
 			{
-				if (Urho3D::Abs(Vector3(
-					cameraNode_->GetPosition() -
-					firstPersonPos).Length() <
-					currentPos.Length() / 50.0f
-					* duration))
-				{
-					cameraNode_->SetPosition(
-						firstPersonPos);
+				cameraNode_->SetPosition(firstPersonPos);
+			}
+			else
+			{
+				Vector3 tempPos1 = towardsFPS / 
+					transitionRate * duration;
 
-				}
-
-				else
-				{
-					URHO3D_LOGDEBUG("At Head pos");
-
-					cameraNode_->SetPosition(
-						currentPos / 50.0f *
-						duration);
-
-					/*cameraNode_->SetPosition(headNode->
-					GetWorldPosition() + rot * Vector3
-					(0.0f, 0.15f, 0.2f));
-					cameraNode_->SetRotation(dir);
-				}
-
-			}*/
-
+				cameraNode_->SetPosition(cameraNode_->GetPosition
+					+= tempPos1);
+			}
 		}
 		else
 		{
-			Vector3 firstPersonPos = headNode->GetPosition();
+			if (Abs(Vector3(cameraNode_->GetPosition() -
+				thirdPersonPos).Length()) < towardsTPS.Length()
+				/ transitionRate * duration)
+			{
+				cameraNode_->SetPosition(thirdPersonPos);
+			}
+			else
+			{
+				Vector3 tempPos2 = towardsTPS /
+					transitionRate * duration;
 
-			toThirdPersonAnimation->SetKeyFrame(0.0f, Vector3(headNode->
-				GetPosition()));
-			toThirdPersonAnimation->SetKeyFrame(4.0f, Vector3(0.0f, 5.0f, 0.0f));
+				cameraNode_->SetPosition(cameraNode_->GetPosition
+					+= tempPos2);
+			}
+		}
+		/*if (firstPerson_)
+		{
+			cameraNode_->SetPosition(headNode->
+				GetWorldPosition() + rot * Vector3
+				(0.0f, 0.15f, 0.2f));
+			cameraNode_->SetRotation(dir);
+		}
 
+		else
+		{
 			PhysicsRaycastResult result;
 			scene_->GetComponent<PhysicsWorld>()->
 				RaycastSingle(result, Ray(aimPoint,
@@ -321,15 +248,10 @@ public:
 					result.distance_);
 			rayRange - Clamp(rayRange, 1.0f, 5.0f);
 
-			cameraAnimation->AddAttributeAnimation
-			("Position", toFirstPersonAnimation, WM_CLAMP);
-
-			cameraNode_->SetObjectAnimation(cameraAnimation);
-
 			cameraNode_->SetPosition(aimPoint +
 				rayDir * rayRange);
 			cameraNode_->SetRotation(dir);
-		}
+		}*/
 	}
 
 };
