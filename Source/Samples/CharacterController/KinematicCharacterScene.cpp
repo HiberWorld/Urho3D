@@ -207,8 +207,8 @@ public:
 				Vector3 tempPos1 = towardsFPS / 
 					transitionRate * duration;
 
-				cameraNode_->SetPosition(cameraNode_->GetPosition
-					+= tempPos1);
+				cameraNode_->SetPosition(cameraNode_->GetPosition()
+					+ tempPos1);
 			}
 		}
 		else
@@ -224,8 +224,8 @@ public:
 				Vector3 tempPos2 = towardsTPS /
 					transitionRate * duration;
 
-				cameraNode_->SetPosition(cameraNode_->GetPosition
-					+= tempPos2);
+				cameraNode_->SetPosition(cameraNode_->GetPosition()
+					+ tempPos2);
 			}
 		}
 		/*if (firstPerson_)
