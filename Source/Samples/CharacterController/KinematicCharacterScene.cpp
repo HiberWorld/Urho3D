@@ -1,6 +1,12 @@
 #include "Global.h"
-#include "Urho3D/IO/Log.h"
+#include "LinearMath\btGeometryUtil.h"
+#include "LinearMath\btVector3.h"
+#include "Urho3D\Core\Timer.h"
 #include "KinematicCharacterController.h"
+#include "tween.h"
+#include "tweenpoint.h"
+#include "tweentraits.h"
+#include "tweeny.h"
 
 class KinematicCharacterScene : public Application
 {
@@ -39,11 +45,10 @@ public:
 	{
 		InitGlobal(context_);
 
-		CreateScene();
-		SetupViewport();
-		SubscribeToEvents();
-
-
+		CreateScene(); 
+		SetupViewport(); 
+		SubscribeToEvents(); 
+		
 	}
 
 	void SetupViewport()
@@ -180,7 +185,33 @@ public:
 
 		if (firstPerson_)
 		{
-			cameraNode_->SetPosition(headNode->
+			if (cameraNode_->GetPosition() != firstPersonPos)
+			{
+				if (Abs(cameraNode_->
+					GetPosition()-firstPersonPos 
+					< currentPos.Length / 0.5f * time))
+				{
+					cameraNode_->SetPosition(firstPersonPos);
+				}
+				else
+				{
+					Vector3 newPos; 
+					newPos += currentPos / 0.5f * time;
+
+					cameraNode_->SetPosition(newPos);
+				}
+			}
+
+			if (cameraNode_->GetPosition() == firstPersonPos)
+			{
+				cameraNode_->SetPosition(headNode->
+					GetWorldPosition() + rot * Vector3
+					(0.0f, 0.15f, 0.2f));
+
+					cameraNode_->SetRotation(dir);
+			}*/
+
+			/*cameraNode_->SetPosition(headNode->
 				GetWorldPosition() + rot * Vector3
 			(0.0f, 0.15f, 0.2f));
 			cameraNode_->SetRotation(dir);
@@ -197,8 +228,10 @@ public:
 					currentPos.Length() / 50.0f
 					* timestep))
 				{
-					cameraNode_->SetPosition(
-						firstPersonPos);
+					
+					/*cameraNode_->SetPosition(
+						firstPersonPos);*/
+					cameraTween.step(timestep);
 				}
 			else
 			{
@@ -207,6 +240,8 @@ public:
 					GetWorldPosition() + rot * Vector3
 					(0.0f, 0.15f, 0.2f));
 				cameraNode_->SetRotation(dir);
+
+				
 
 				URHO3D_LOGDEBUG("At Head pos");
 

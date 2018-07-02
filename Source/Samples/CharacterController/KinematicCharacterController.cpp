@@ -59,11 +59,41 @@ void KinematicCharacterController::Start()
 	SetAirControl(.25f);
 }
 
+void KinematicCharacterController::CreatePhysComponents(float height, float diameter)
+	{
+		btTransform startTransform; 
+		startTransform.setIdentity();
+		startTransform.setOrigin(btVector3(0, 10, 4));
+		startTransform.setRotation(ToBtQuaternion
+		(Quaternion(90, 0, 0)));
+
+		btConvexShape* capsule = new btCapsuleShape
+		(diameter * 0.5, height - diameter);
+		height_ = height; 
+		diameter_ = diameter; 
+
+		btDiscreteDynamicsWorld* world = GetScene()->
+			GetComponent<PhysicsWorld>()->GetWorld();
+
+		ghostObject_ = new btPairCachingGhostObject();
+		ghostObject_->setWorldTransform(startTransform);
+		world->getBroadphase()->getOverlappingPairCache()->
+			setInternalGhostPairCallback(new btGhostPairCallback());
+		ghostObject_->setCollisionShape(capsule);
+		ghostObject_->setCollisionFlags(btCollisionObject::
+			CF_CHARACTER_OBJECT);
+		bulletController_ = new btKinematicCharacterController(
+			ghostObject_, capsule, 0.3f, btVector3(0, 0, 1));
+		bulletController_->setGravity(world->getGravity());
+
+		world->addCollisionObject(ghostObject_, btBroadphaseProxy::
+			CharacterFilter,btBroadphaseProxy::AllFilter); 
+		world->addAction(bulletController_);
+		bulletController_->setMaxJumpHeight(1.5); 
+	}
+
 void KinematicCharacterController::FixedUpdate(float timestep)
 {
-	/*const float MOVEMENT_SPEED = 6.0f;
-	const float AIR_CONTROL = 0.25f; */
-
 	Vector3 moveDir; 
 
 	if (!bulletController_->onGround())
@@ -117,7 +147,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		node_->SetWorldPosition(newPos);
 	}
 
-	void KinematicCharacterController::Update(float timestep)
+void KinematicCharacterController::Update(float timestep)
 	{
 		auto* input = GetSubsystem<Input>();
 
@@ -135,55 +165,22 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		bulletController_->getGhostObject()->setWorldTransform(t); 
 	}
 
-	void KinematicCharacterController::CreatePhysComponents(float height, float diameter)
-	{
-		btTransform startTransform; 
-		startTransform.setIdentity();
-		startTransform.setOrigin(btVector3(0, 10, 4));
-		startTransform.setRotation(ToBtQuaternion
-		(Quaternion(90, 0, 0)));
-
-		btConvexShape* capsule = new btCapsuleShape
-		(diameter * 0.5, height - diameter);
-		height_ = height; 
-		diameter_ = diameter; 
-
-		btDiscreteDynamicsWorld* world = GetScene()->
-			GetComponent<PhysicsWorld>()->GetWorld();
-
-		ghostObject_ = new btPairCachingGhostObject();
-		ghostObject_->setWorldTransform(startTransform);
-		world->getBroadphase()->getOverlappingPairCache()->
-			setInternalGhostPairCallback(new btGhostPairCallback());
-		ghostObject_->setCollisionShape(capsule);
-		ghostObject_->setCollisionFlags(btCollisionObject::
-			CF_CHARACTER_OBJECT);
-		bulletController_ = new btKinematicCharacterController(
-			ghostObject_, capsule, 0.3f, btVector3(0, 0, 1));
-		bulletController_->setGravity(world->getGravity());
-
-		world->addCollisionObject(ghostObject_, btBroadphaseProxy::
-			CharacterFilter,btBroadphaseProxy::AllFilter); 
-		world->addAction(bulletController_);
-		bulletController_->setMaxJumpHeight(1.5); 
-	}
-
-	void KinematicCharacterController::SetAirControl(float airControlMod)
+void KinematicCharacterController::SetAirControl(float airControlMod)
 	{
 		AIR_CONTROL = airControlMod; 
 	}
 
-	void KinematicCharacterController::SetJumpForce(float jumpForce)
+void KinematicCharacterController::SetJumpForce(float jumpForce)
 	{
 		JUMP_FORCE = jumpForce;
 	}
 
-	void KinematicCharacterController::SetMovementSpeed(float speed)
+void KinematicCharacterController::SetMovementSpeed(float speed)
 	{
 		MOVEMENT_SPEED = speed; 
 	}
 
-	void KinematicCharacterController::InfiniteJump()
+void KinematicCharacterController::InfiniteJump()
 	{
 		if (playerControls_.IsDown(CTRL_JUMP))
 		{
@@ -196,7 +193,7 @@ void KinematicCharacterController::FixedUpdate(float timestep)
 		}
 	}
 
-	void KinematicCharacterController::DefaultJump()
+void KinematicCharacterController::DefaultJump()
 	{
 		bool softGrounded = inAirTimer_ < 0.1;
 
