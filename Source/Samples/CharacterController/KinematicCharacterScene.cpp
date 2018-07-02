@@ -3,6 +3,10 @@
 #include "LinearMath\btVector3.h"
 #include "Urho3D\Core\Timer.h"
 #include "KinematicCharacterController.h"
+#include "tween.h"
+#include "tweenpoint.h"
+#include "tweentraits.h"
+#include "tweeny.h"
 
 class KinematicCharacterScene : public Application
 {
@@ -179,8 +183,13 @@ public:
 		Vector3 currentPos = firstPersonPos - cameraNode_->
 			GetPosition(); 
 
-		float transitionrate = 0.5f;
-		if (cameraNode_->GetPosition() != firstPersonPos
+		float transitionRate = 0.5f;
+		
+		auto cameraTween = tweeny::from(cameraNode_->
+			GetPosition()).to(firstPersonPos).
+			during(transitionRate); 
+
+		/*if (cameraNode_->GetPosition() != firstPersonPos
 			&& firstPerson_)
 		{
 			if (cameraNode_->GetPosition() != firstPersonPos)
@@ -207,7 +216,7 @@ public:
 					(0.0f, 0.15f, 0.2f));
 
 					cameraNode_->SetRotation(dir);
-			}
+			}*/
 
 			/*cameraNode_->SetPosition(headNode->
 				GetWorldPosition() + rot * Vector3
@@ -220,13 +229,15 @@ public:
 				firstPersonPos)
 			{
 				if (Urho3D::Abs(Vector3(
-					cameraNode_->GetPosition()-
-					firstPersonPos).Length() < 
-					currentPos.Length() / 50.0f 
+					cameraNode_->GetPosition() -
+					firstPersonPos).Length() <
+					currentPos.Length() / 50.0f
 					* timestep))
 				{
-					cameraNode_->SetPosition(
-						firstPersonPos);
+					
+					/*cameraNode_->SetPosition(
+						firstPersonPos);*/
+					cameraTween.step(timestep);
 				}
 			else
 			{
@@ -235,6 +246,8 @@ public:
 					GetWorldPosition() + rot * Vector3
 					(0.0f, 0.15f, 0.2f));
 				cameraNode_->SetRotation(dir);*/
+
+				
 
 				URHO3D_LOGDEBUG("At Head pos");
 				 
