@@ -180,70 +180,13 @@ public:
 			GetPosition(); 
 
 		float transitionrate = 0.5f;
-		if (cameraNode_->GetPosition() != firstPersonPos
-			&& firstPerson_)
-		{
-			if (cameraNode_->GetPosition() != firstPersonPos)
-			{
-				if (Abs(cameraNode_->
-					GetPosition()-firstPersonPos 
-					< currentPos.Length / 0.5f * time))
-				{
-					cameraNode_->SetPosition(firstPersonPos);
-				}
-				else
-				{
-					Vector3 newPos; 
-					newPos += currentPos / 0.5f * time;
-
-					cameraNode_->SetPosition(newPos);
-				}
-			}
-
-			if (cameraNode_->GetPosition() == firstPersonPos)
-			{
-				cameraNode_->SetPosition(headNode->
-					GetWorldPosition() + rot * Vector3
-					(0.0f, 0.15f, 0.2f));
-
-					cameraNode_->SetRotation(dir);
-			}
-
-			/*cameraNode_->SetPosition(headNode->
-				GetWorldPosition() + rot * Vector3
-			(0.0f, 0.15f, 0.2f));
-			cameraNode_->SetRotation(dir);*/
 
 		if (firstPerson_)
 		{
-			if (headNode->GetPosition() !=
-				firstPersonPos)
-			{
-				if (Urho3D::Abs(Vector3(
-					cameraNode_->GetPosition()-
-					firstPersonPos).Length() < 
-					currentPos.Length() / 50.0f 
-					* timestep))
-				{
-					cameraNode_->SetPosition(
-						firstPersonPos);
-				}
-			else
-			{
-
-				/*cameraNode_->SetPosition(headNode->
+				cameraNode_->SetPosition(headNode->
 					GetWorldPosition() + rot * Vector3
 					(0.0f, 0.15f, 0.2f));
-				cameraNode_->SetRotation(dir);*/
-
-				URHO3D_LOGDEBUG("At Head pos");
-				 
-				cameraNode_->SetPosition(
-					currentPos / 50.0f * 
-					timestep);
-			}
-		}
-
+				cameraNode_->SetRotation(dir);
 		}
 
 		else
