@@ -14,7 +14,7 @@ public:
 	float yaw_ = 0.0f;
 	float pitch_ = 0.0f;
 	bool firstPerson_ = false;
-	bool zoomedIn_ = false; 
+	bool zoomEnabled_ = true; 
 
 	float camTransitionTime = 1.0;
 	Vector3 cameraPos; 
@@ -85,6 +85,8 @@ public:
 	{
 		SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(
 			KinematicCharacterScene, HandleKeyDown));
+		SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(
+			KinematicCharacterScene, HandleKeyUp));
 		SubscribeToEvent(E_UPDATE, URHO3D_HANDLER
 		(KinematicCharacterScene, HandleUpdate));
 		SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER
@@ -103,10 +105,23 @@ public:
 
 		if (key == KEY_F)
 		{
-			camTransitionTime = 0.0;
-			cameraPos = cameraNode_->GetPosition();
-			firstPerson_ = !firstPerson_;
+			if (zoomEnabled_)
+			{
+				camTransitionTime = 0.0;
+				cameraPos = cameraNode_->GetPosition();
+				firstPerson_ = !firstPerson_;
+				zoomEnabled_ = false; 
+			}
 		}
+	}
+
+	void HandleKeyUp(StringHash eventType, VariantMap& eventData)
+	{
+		using namespace KeyUp;
+
+		int key = eventData[P_KEY].GetInt();
+
+		zoomEnabled_ = !zoomEnabled_;
 	}
 
 	void HandleUpdate(StringHash eventType, VariantMap& eventData)
