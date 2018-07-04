@@ -14,6 +14,10 @@ public:
 	float yaw_ = 0.0f;
 	float pitch_ = 0.0f;
 	bool firstPerson_ = false;
+	bool zoomedIn_ = false; 
+
+	float camTransitionTime = 1.0;
+	Vector3 cameraPos; 
 
 	Node* charNode_ = nullptr;
 
@@ -99,6 +103,8 @@ public:
 
 		if (key == KEY_F)
 		{
+			camTransitionTime = 0.0;
+			cameraPos = cameraNode_->GetPosition();
 			firstPerson_ = !firstPerson_;
 		}
 	}
@@ -193,47 +199,15 @@ public:
 
 		float transitionRate = 0.5f; 
 
-		if (firstPerson_ && cameraNode_->GetPosition() !=
-			firstPersonPos)
-		{
-			if (Abs(Vector3(cameraNode_->GetPosition()-
-				firstPersonPos).Length())< towardsFPS.Length()
-				/transitionRate * duration)
-			{
-				cameraNode_->SetPosition(firstPersonPos);
-			}
-			else
-			{
-				Vector3 tempPos1 = towardsFPS / 
-					transitionRate * duration;
+		Vector3 targetPos;
 
-				cameraNode_->SetPosition(cameraNode_->GetPosition()
-					+ tempPos1);
-			}
-		}
-		else
+		if (firstPerson_)
 		{
-			if (Abs(Vector3(cameraNode_->GetPosition() -
-				thirdPersonPos).Length()) < towardsTPS.Length()
-				/ transitionRate * duration)
-			{
-				cameraNode_->SetPosition(thirdPersonPos);
-			}
-			else
-			{
-				Vector3 tempPos2 = towardsTPS /
-					transitionRate * duration;
+			Vector3 firstPersonPos = Vector3(headNode->
+				GetWorldPosition() + rot *
+					Vector3(0.0f, 0.15f, 0.2f));
 
-				cameraNode_->SetPosition(cameraNode_->GetPosition()
-					+ tempPos2);
-			}
-		}
-		/*if (firstPerson_)
-		{
-			cameraNode_->SetPosition(headNode->
-				GetWorldPosition() + rot * Vector3
-				(0.0f, 0.15f, 0.2f));
-			cameraNode_->SetRotation(dir);
+					targetPos = firstPersonPos;
 		}
 
 		else
@@ -248,10 +222,23 @@ public:
 					result.distance_);
 			rayRange - Clamp(rayRange, 1.0f, 5.0f);
 
-			cameraNode_->SetPosition(aimPoint +
-				rayDir * rayRange);
-			cameraNode_->SetRotation(dir);
-		}*/
+
+			targetPos = aimPoint + rayDir * rayRange;
+		}
+
+		Vector3 currentCameraPos = cameraNode_->GetPosition();
+
+		if (camTransitionTime >= 1.0) {
+			cameraNode_->SetPosition(targetPos);
+			
+		}
+		else {
+			camTransitionTime += 5.0 * duration;
+			Vector3 lerpedPos = cameraPos.Lerp(targetPos, camTransitionTime);
+			cameraNode_->SetPosition(lerpedPos);
+		}
+		
+		cameraNode_->SetRotation(dir);
 	}
 
 };
