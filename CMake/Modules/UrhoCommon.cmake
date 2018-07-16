@@ -704,8 +704,8 @@ else ()
                 set (CMAKE_C_FLAGS_RELEASE "-Oz -DNDEBUG")
                 set (CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG")
                 # Remove variables to make the -O3 regalloc easier, embed data in asm.js to reduce number of moving part
-                set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1 --memory-init-file 0")
-                set (CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1 --memory-init-file 0")
+                set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -O3 --llvm-lto 1 --memory-init-file 0")
+                set (CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} -O3 --llvm-lto 1 --memory-init-file 0")
                 # Preserve LLVM debug information, show line number debug comments, and generate source maps; always disable exception handling codegen
                 set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -g4 -s DISABLE_EXCEPTION_CATCHING=1")
                 set (CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} -g4 -s DISABLE_EXCEPTION_CATCHING=1")
@@ -1809,13 +1809,13 @@ macro (_setup_target)
         endif ()
         # These flags are here instead of in the CMAKE_(EXE|MODULE)_LINKER_FLAGS so that they do not interfere with the auto-detection logic during initial configuration
         if (NOT LIB_TYPE OR LIB_TYPE STREQUAL MODULE)
-            list (APPEND LINK_FLAGS "-s NO_EXIT_RUNTIME=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1")
+            list (APPEND LINK_FLAGS "-s NO_EXIT_RUNTIME=1 --closure 1 -s IGNORE_CLOSURE_COMPILER_ERRORS=1") # -s ERROR_ON_UNDEFINED_SYMBOLS=1
             if (EMSCRIPTEN_WASM)
-                list (APPEND LINK_FLAGS "-s WASM=1")
-            elseif (NOT EMSCRIPTEN_EMCC_VERSION VERSION_LESS 1.38.1)
+                list (APPEND LINK_FLAGS "-s WASM=1 -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 -s BINARYEN_TRAP_MODE=\"clamp\"")
+            else()
                 # Since version 1.38.1 emcc emits WASM by default, so we need to explicitily turn it off to emits asm.js
                 # (See https://github.com/kripken/emscripten/commit/6e5818017d1b2e09e9f7ad22a32e9a191f6f9a3b for more detail)
-                list (APPEND LINK_FLAGS "-s WASM=0")
+                list (APPEND LINK_FLAGS "-s WASM=0 -s AGGRESSIVE_VARIABLE_ELIMINATION=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1")
             endif ()
         endif ()
         # Pass EMCC-specifc setting to differentiate between main and side modules
