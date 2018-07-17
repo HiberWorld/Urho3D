@@ -1809,7 +1809,7 @@ macro (_setup_target)
         endif ()
         # These flags are here instead of in the CMAKE_(EXE|MODULE)_LINKER_FLAGS so that they do not interfere with the auto-detection logic during initial configuration
         if (NOT LIB_TYPE OR LIB_TYPE STREQUAL MODULE)
-            list (APPEND LINK_FLAGS "-s NO_EXIT_RUNTIME=1 --closure 1 -s IGNORE_CLOSURE_COMPILER_ERRORS=1") # -s ERROR_ON_UNDEFINED_SYMBOLS=1
+            list (APPEND LINK_FLAGS "-s NO_EXIT_RUNTIME=1 --closure 1 -s IGNORE_CLOSURE_COMPILER_ERRORS=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1")
             if (EMSCRIPTEN_WASM)
                 list (APPEND LINK_FLAGS "-s WASM=1 -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 -s BINARYEN_TRAP_MODE=\"clamp\"")
             else()
