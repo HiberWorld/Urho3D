@@ -590,7 +590,7 @@ void Graphics::EndFrame()
     CleanupScratchBuffers();
 }
 
-void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil)
+void Graphics::Clear(ClearTargetFlags flags, const Color& color, float depth, unsigned stencil)
 {
     IntVector2 rtSize = GetRenderTargetDimensions();
 
@@ -631,13 +631,13 @@ void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned s
         model.m23_ = Clamp(depth, 0.0f, 1.0f);
 
         SetBlendMode(BLEND_REPLACE);
-        SetColorWrite((flags & CLEAR_COLOR) != 0);
+        SetColorWrite(flags & CLEAR_COLOR);
         SetCullMode(CULL_NONE);
         SetDepthTest(CMP_ALWAYS);
-        SetDepthWrite((flags & CLEAR_DEPTH) != 0);
+        SetDepthWrite(flags & CLEAR_DEPTH);
         SetFillMode(FILL_SOLID);
         SetScissorTest(false);
-        SetStencilTest((flags & CLEAR_STENCIL) != 0, CMP_ALWAYS, OP_REF, OP_KEEP, OP_KEEP, stencil);
+        SetStencilTest(flags & CLEAR_STENCIL, CMP_ALWAYS, OP_REF, OP_KEEP, OP_KEEP, stencil);
         SetShaders(GetShader(VS, "ClearFramebuffer"), GetShader(PS, "ClearFramebuffer"));
         SetShaderParameter(VSP_MODEL, model);
         SetShaderParameter(VSP_VIEWPROJ, projection);
@@ -2167,6 +2167,13 @@ bool Graphics::CreateDevice(int width, int height, int multiSample)
     // After creating the swap chain, disable automatic Alt-Enter fullscreen/windowed switching
     // (the application will switch manually if it wants to)
     dxgiFactory->MakeWindowAssociation(GetWindowHandle(window_), DXGI_MWA_NO_ALT_ENTER);
+
+#ifdef URHO3D_LOGGING
+    DXGI_ADAPTER_DESC desc;
+    dxgiAdapter->GetDesc(&desc);
+    String adapterDesc(desc.Description);
+    URHO3D_LOGINFO("Adapter used " + adapterDesc);
+#endif
 
     dxgiFactory->Release();
     dxgiAdapter->Release();

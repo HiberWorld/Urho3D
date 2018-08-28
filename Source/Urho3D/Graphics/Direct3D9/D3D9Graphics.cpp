@@ -479,6 +479,11 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     impl_->device_->Present(nullptr, nullptr, nullptr, nullptr);
 
 #ifdef URHO3D_LOGGING
+    D3DADAPTER_IDENTIFIER9 id = {0};
+    HRESULT hr = impl_->interface_->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &id);
+    if (S_OK == hr)
+      URHO3D_LOGINFOF("Adapter used %s", id.Description);
+
     String msg;
     msg.AppendWithFormat("Set screen mode %dx%d %s monitor %d", width_, height_, (fullscreen_ ? "fullscreen" : "windowed"), monitor_);
     if (borderless_)
@@ -771,7 +776,7 @@ void Graphics::EndFrame()
     CleanupScratchBuffers();
 }
 
-void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil)
+void Graphics::Clear(ClearTargetFlags flags, const Color& color, float depth, unsigned stencil)
 {
     DWORD d3dFlags = 0;
     if (flags & CLEAR_COLOR)
